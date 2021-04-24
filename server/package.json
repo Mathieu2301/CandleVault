@@ -1,0 +1,26 @@
+{
+  "name": "candlevault-server",
+  "version": "1.0.0",
+  "description": "CandleVault server",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main",
+    "test": "node test"
+  },
+  "keywords": [
+    "CandleVault",
+    "Server"
+  ],
+  "author": "Mathieu Colmon",
+  "license": "ISC",
+  "dependencies": {
+    "@mathieuc/tradingview": "^1.0.0",
+    "firebase-admin": "^9.6.0",
+    "websocket": "^1.0.34"
+  },
+  "devDependencies": {
+    "eslint": "^7.23.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.22.1"
+  }
+}

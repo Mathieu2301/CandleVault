@@ -1,0 +1,54 @@
+service cloud.firestore {
+  function same(key) {
+    return request.resource.data[key] == resource.data[key];
+  }
+
+  function check(inputs) {
+    return (
+      request.resource.data.keys().hasOnly(inputs)
+      && request.resource.data.keys().hasAll(inputs)
+    );
+  }
+
+    
+  match /databases/{database}/documents/candlevault_trades/{tradeID} {
+    allow read: if resource.data.user == request.auth.uid;
+
+    function userMoney(user) {
+      return get(/databases/$(database)/documents/candlevault_users/$(user)).data.money;
+    }
+    
+    allow create: if (
+      request.resource.data.user == request.auth.uid
+      && request.resource.data.market != null
+      && (request.resource.data.lever >= 1 || request.resource.data.lever <= -1)
+      && request.resource.data.lever <= 30
+      && request.resource.data.value >= 0.01
+      && request.resource.data.value < userMoney(request.resource.data.user)
+      && request.resource.data.TP >= 0.01
+      && request.resource.data.SL >= 0.01
+      && request.resource.data.state == 'WAITFOROPEN'
+    );
+    
+    allow delete: if (
+      resource.data.user == request.auth.uid
+      && request.resource.data.state == 'WAITFOROPEN'
+    );
+  }
+  
+  match /databases/{database}/documents/candlevault_users/{userID} {
+    allow get: if userID == request.auth.uid;
+    allow update: if (
+      userID == request.auth.uid
+      && check(['money', 'markets'])
+      && same('money')
+    );
+  }
+
+  match /databases/{database}/documents/candlevault_transactions/{transactionID} {
+    allow read: if (
+      resource.data.from == request.auth.uid
+      || resource.data.to == request.auth.uid
+    );
+  }
+}

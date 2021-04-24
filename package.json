@@ -1,0 +1,10 @@
+{
+  "name": "swiftrading",
+  "main": "server/main.js",
+  "scripts": {
+    "start": "cd server/ && npm start",
+    "heroku-prebuild": "cd server/ && npm i",
+    "serve": "cd webapp/ && npm run serve",
+    "deploy": "cd webapp/ && npm run deploy"
+  }
+}
