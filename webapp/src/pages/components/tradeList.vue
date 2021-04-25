@@ -26,8 +26,8 @@
             </div>
 
             <div class="evol right" :class="{
-              green: values[trade.market] > trade.openVal,
-              red: values[trade.market] < trade.openVal,
+              green: (trade.closeVal || values[trade.market]) > trade.openVal,
+              red: (trade.closeVal || values[trade.market]) < trade.openVal,
             }">
               {{ ((trade.closeVal || values[trade.market])
                 ? calcEvol(trade)
@@ -40,8 +40,8 @@
             <div class="value left">{{ toEuro(trade.value) }}</div>
             <div class="value">{{ calcNewTradeValue(trade) }}</div>
             <div class="gain right" :class="{
-              green: trade.lever * (values[trade.market] - trade.openVal) > 0,
-              red: trade.lever * (values[trade.market] - trade.openVal) < 0,
+              green: trade.lever * ((trade.closeVal || values[trade.market]) - trade.openVal) > 0,
+              red: trade.lever * ((trade.closeVal || values[trade.market]) - trade.openVal) < 0,
             }">{{ calcGain(trade) }}</div>
           </div>
         </div>

@@ -61,7 +61,6 @@ export default {
       }
 
       if (this.type === 'technical-analysis') {
-        console.log('Reload TA');
         return {
           symbol: this.$route.params.market,
           interval: '1h',

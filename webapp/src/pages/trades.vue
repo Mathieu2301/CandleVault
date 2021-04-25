@@ -162,8 +162,6 @@ export default {
       db.collection('candlevault_trades').add(trade).then(() => {
         toast.success({ title: 'Trade initialized' });
       });
-
-      console.log(trade);
     },
   },
 };
