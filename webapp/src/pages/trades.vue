@@ -107,14 +107,18 @@ export default {
     if (lastTrade.buy) this.buy = lastTrade.buy;
     if (lastTrade.TP) this.TP = lastTrade.TP;
     if (lastTrade.SL) this.SL = lastTrade.SL;
-    if (lastTrade.lever) this.lever = lastTrade.SL;
-    if (lastTrade.value) this.value = lastTrade.SL;
+    if (lastTrade.lever) this.lever = lastTrade.lever;
+    if (lastTrade.value) this.value = lastTrade.value;
   },
 
   watch: {
     SL() { this.SL = this.SL.replace(/[^0-9.]/g, ''); },
     TP() { this.TP = this.TP.replace(/[^0-9.]/g, ''); },
-    value() { this.value = this.value.replace(/[^0-9.]/g, ''); },
+    value() {
+      this.value = this.value.replace(/[^0-9.]/g, '');
+      if (!this.SL) this.SL = this.value;
+      if (!this.TP) this.TP = this.value;
+    },
   },
 
   methods: {

@@ -322,7 +322,7 @@ export default {
         .where('user', '==', auth.currentUser.uid)
         .onSnapshot((snap) => {
           this.trades = snap.docs
-            .map((doc) => ({ id: doc.id, ...doc.data() }))
+            .map((doc) => ({ id: doc.id, openDate: { seconds: 10 ** 10 }, ...doc.data() }))
             .sort((a, b) => b.openDate.seconds - a.openDate.seconds);
 
           console.log('Trades =>', this.trades);
@@ -363,7 +363,7 @@ export default {
 
     updateTransactions(changes) {
       changes.forEach(({ doc, type }) => {
-        const transaction = { id: doc.id, ...doc.data() };
+        const transaction = { id: doc.id, date: { seconds: 10 ** 10 }, ...doc.data() };
         const dI = this.transactions.findIndex((t) => t.id === doc.id);
 
         if (type === 'added' && dI === -1) this.transactions.push(transaction);
