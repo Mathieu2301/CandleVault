@@ -18,6 +18,23 @@ const ws = require('./wsServer').server;
 
 const auth = firebase.auth();
 const db = firebase.firestore();
+const fcm = firebase.messaging();
+
+async function sendPush(userID, title, body = '', tag = '/') {
+  const tokenColl = db.collection('candlevault_users').doc(userID).collection('pushTokens');
+  const pushTokens = await tokenColl.get();
+  pushTokens.forEach(({ id: token }) => {
+    console.log(`Send to '${userID.substring(0, 8)}...' => "${title}", "${body}"`);
+    fcm.send({
+      token,
+      data: { title, body, tag },
+    }).then(() => {
+      tokenColl.doc(token).update({ lastUse: new Date() });
+    }).catch(() => {
+      tokenColl.doc(token).delete();
+    });
+  });
+}
 
 /** @enum @const */
 const P_TYPES = {
@@ -43,7 +60,6 @@ const P_TYPES = {
  */
 function sendPacket(socket, type, data = '') {
   socket.sendBytes(Buffer.from(`${type}${data}`));
-  console.log(type);
 }
 
 function parsePacket(packet) {
@@ -57,6 +73,45 @@ function parsePacket(packet) {
 }
 
 const genPayload = () => miakode.string.encode(Math.round(Math.random() * 10000).toString());
+
+db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnapshot((snap) => {
+  snap.forEach(async (transacDoc) => {
+    const { from, to, value } = transacDoc.data();
+
+    if (!from || !to || !value) {
+      transacDoc.ref.delete();
+      return;
+    }
+
+    const users = db.collection('candlevault_users');
+    const fromUser = await users.doc(from).get();
+    const toUser = await users.doc(to).get();
+
+    const fromUserMoney = fromUser.get('money');
+
+    if (!fromUser.exists || !toUser.exists || !fromUserMoney || fromUserMoney < value) {
+      transacDoc.ref.delete();
+      return;
+    }
+
+    transacDoc.ref.update({ state: 'DONE', date: new Date() });
+
+    fromUser.ref.update({
+      money: firebase.firestore.FieldValue.increment(0 - value),
+    });
+
+    toUser.ref.update({
+      money: firebase.firestore.FieldValue.increment(value),
+    });
+
+    const formattedValue = new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(Math.abs(value));
+
+    sendPush(to, `Transaction received: +${formattedValue}`, (transacDoc.get('name') || ''));
+  });
+});
 
 /** @typedef {string} MarketSymbol */
 
@@ -85,7 +140,6 @@ const userListeners = {};
 const subscribedSymbols = [];
 
 stocksAPI.on('price', (data) => {
-  console.log(data.symbol, '=>', data.price);
   Object.values(trades)
     .filter((t) => t.market === data.symbol && t.state !== 'CLOSED')
     .forEach((trade) => {
@@ -112,9 +166,6 @@ stocksAPI.on('price', (data) => {
         }
 
         userListeners[trade.user].forEach((h) => h(data.symbol, data.price));
-
-        const evol = (data.price / trade.openVal) - 1;
-        console.log(`${trade.openVal} -> ${data.price} = ${evol * 100}% = ${gain}€`);
       }
 
       if (trade.state === 'WAITFORCLOSE') {
@@ -128,6 +179,25 @@ stocksAPI.on('price', (data) => {
         db.collection('candlevault_users').doc(trade.user).update({
           money: firebase.firestore.FieldValue.increment(gain),
         });
+
+        const evol = (data.price / trade.openVal) - 1;
+
+        const formattedEvol = new Intl.NumberFormat('fr-FR', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }).format(Math.abs(evol));
+
+        const formattedGain = new Intl.NumberFormat('fr-FR', {
+          style: 'currency',
+          currency: 'EUR',
+        }).format(Math.abs(gain));
+
+        sendPush(
+          trade.user,
+          `${trade.market} trade closed (${evol > 0 ? '+' : '-'}${formattedEvol}%)`,
+          `Gain/Loss: ${gain > 0 ? '+' : '-'}${formattedGain}`,
+          `${trade.market}`,
+        );
       }
     });
 });
@@ -135,7 +205,7 @@ stocksAPI.on('price', (data) => {
 let firstLog = true;
 
 stocksAPI.on('logged', () => {
-  console.log('Logged');
+  console.log('Stocks API: logged !');
   if (!firstLog) return;
   firstLog = true;
 
@@ -146,7 +216,6 @@ stocksAPI.on('logged', () => {
     });
 
     trades = newTrades;
-    console.log('trades', trades);
 
     snap.docChanges().forEach((change) => {
       const symbol = change.doc.get('market');
@@ -176,17 +245,14 @@ let incrementer = 0;
 
 console.log('Ready !');
 ws.on('connect', (socket) => {
-  // return;
   incrementer += 1;
 
   const client = {
     authenticated: false,
-    /** @type {number} */
     socketID: incrementer,
   };
 
   let pongPayload = null;
-  let pongTime = null;
 
   socket.on('message', async (packet) => {
     const msg = parsePacket(packet);
@@ -196,7 +262,6 @@ ws.on('connect', (socket) => {
 
     // USER AUTHENTICATION
     if (msg.type === P_TYPES.CLIENT.AUTH && !client.authenticated) {
-      console.log('Auth user');
       const [userID, userToken] = miakode.array.decode(msg.data);
       if (!userID || !userToken) {
         socket.close(4002, 'WRONG_REQUEST');
@@ -213,7 +278,6 @@ ws.on('connect', (socket) => {
 
         userListeners[userID][client.socketID] = (market, price) => {
           sendPacket(socket, P_TYPES.SERVER.MARKET, miakode.array.encode([market, price]));
-          console.log('MARKET_VALUE =>', market, price);
         };
 
         socket.on('close', () => {
@@ -221,7 +285,7 @@ ws.on('connect', (socket) => {
         });
 
         client.authenticated = true;
-        console.log('=>', client);
+        console.log('Connect =>', client);
       }).catch((e) => {
         console.log(e);
         socket.close(4001, 'WRONG_CREDENTIALS');
@@ -239,13 +303,11 @@ ws.on('connect', (socket) => {
         .map((m) => m.symbol)
         .filter((v, i, s) => s.indexOf(v) === i)
         .slice(0, 10);
-      console.log('Search results', { filter, query }, results);
       sendPacket(socket, P_TYPES.SERVER.S_RESULTS, miakode.array.encode(results));
       return;
     }
 
     if (msg.type === P_TYPES.CLIENT.PONG) {
-      pongTime = Date.now();
       pongPayload = msg.data;
       return;
     }
@@ -254,23 +316,18 @@ ws.on('connect', (socket) => {
   });
 
   let pingPayload = null;
-  let pingTime = null;
   const pingInterval = setInterval(() => {
-    console.log('ping');
     if (pingPayload !== pongPayload) {
       socket.close(4000, 'TIMEOUT');
       return;
     }
 
-    if (pongTime) console.log('Ping', pongTime - pingTime, 'ms');
-
     pingPayload = genPayload();
-    pingTime = Date.now();
     sendPacket(socket, P_TYPES.SERVER.PING, pingPayload);
   }, 5000);
 
   socket.on('close', (code, desc) => {
-    console.log('DISCONNECT', code, desc);
+    console.log('Disconnect', code, desc);
     clearInterval(pingInterval);
   });
 });

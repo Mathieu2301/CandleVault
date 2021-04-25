@@ -2,8 +2,15 @@ import { register } from 'register-service-worker';
 import 'firebase/messaging';
 
 /* eslint-disable no-console */
+
 /** @type {import('firebase').default} */
 const firebase = window.firebase;
+
+/** @type {import('firebase').default.auth.Auth} */
+const auth = window.auth;
+
+/** @type {import('firebase').default.firestore.Firestore} */
+const db = window.db;
 
 /** @type {import('izitoast').default} */
 const toast = window.toast;
@@ -15,10 +22,20 @@ register(`${process.env.BASE_URL}sw.js`, {
   registered(serviceWorkerRegistration) {
     const fcm = firebase.messaging();
 
-    fcm.getToken({ serviceWorkerRegistration }).then((token) => {
-      console.log('PushToken', token);
-    }).catch(() => {
-      toast.warning({ title: 'Notifications disabled !' });
+    auth.onAuthStateChanged((fUser) => {
+      if (!fUser) return;
+      fcm.getToken({ serviceWorkerRegistration }).then(async (token) => {
+        const doc = db
+          .collection('candlevault_users')
+          .doc(fUser.uid)
+          .collection('pushTokens')
+          .doc(token);
+
+        if (!(await doc.get()).exists) doc.set({ UA: navigator.userAgent });
+      }).catch(() => {
+        console.error('PushToken error');
+        toast.warning({ title: 'Notifications disabled !' });
+      });
     });
   },
   cached() {

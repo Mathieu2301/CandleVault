@@ -172,7 +172,7 @@ export default {
 
     disconnect() {
       localStorage.removeItem('trades');
-      localStorage.removeItem('markets');
+      localStorage.removeItem('user');
       localStorage.removeItem('transactions');
       auth.signOut().then(() => window.location.reload()).catch(toastErr);
     },

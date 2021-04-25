@@ -65,7 +65,7 @@ const router = createRouter({
       component: () => import('./pages/main.vue'),
       children: [
         { path: ':market', component: () => import('./pages/market.vue') },
-        { path: ':market/:action', component: () => import('./pages/marketAction.vue') },
+        { path: ':market/:page', component: () => import('./pages/market.vue') },
       ],
     },
     {

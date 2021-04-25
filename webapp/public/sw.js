@@ -13,9 +13,10 @@ self.addEventListener('fetch', (e) => {
       )
       || normalizedUrl.protocol === 'chrome-extension:'
     ) {
-      console.log('FETCHING', e.request);
+      // console.log('FETCHING', e.request);
       return fetch(e.request);
-    } else console.log('CACHING', e.request);
+    }
+    // } else console.log('CACHING', e.request);
 
     const fetchResponseP = fetch(e.request);
     const fetchResponseCloneP = fetchResponseP.then(r => r.clone());
@@ -53,7 +54,7 @@ messaging.setBackgroundMessageHandler((payload) => {
   return self.registration.showNotification(payload.data.title, {
     body: payload.data.body,
     badge: './icons/notif.png',
-    icon: payload.data.icon,
+    icon: './icons/256.png',
     image: payload.data.image,
     lang: payload.data.lang,
     timestamp: payload.data.timestamp,

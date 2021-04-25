@@ -18,10 +18,15 @@
   --color8-s: #1ab581;
   --font: #ffffff;
   --lightFont: #e7e7e7;
-  --success: #3ea842;
-  --warning: #fc6f0f;
-  --error: #da3939;
+  --green: #0da371;
+  --yellow: #ecb317;
+  --orange: #fc6f0f;
+  --red: #e03737;
 }
+
+.redBg { background-color: var(--red) !important; }
+.greenBg { background-color: var(--green) !important; }
+.greyBg { background-color: var(--color4) !important; }
 
 body {
   -webkit-font-smoothing: antialiased;
@@ -46,7 +51,7 @@ body * {
 body *:not(input),
 body input[type=submit] { user-select: none }
 
-::placeholder { color: #646464 }
+::placeholder { color: #838383 }
 
 .container {
   width: fit-content;
@@ -56,6 +61,11 @@ body input[type=submit] { user-select: none }
 
 .container.withHead { margin-top: 60px }
 .container.full { width: auto }
+
+.content {
+  margin: 0 auto;
+  max-width: 500px;
+}
 
 .title {
   font-size: 30px;
@@ -89,6 +99,8 @@ body input[type=submit] { user-select: none }
 .tabs {
   display: grid;
   grid-template-columns: 50% 50%;
+  max-width: 700px;
+  margin: 0 auto;
   align-items: center;
 }
 
@@ -114,7 +126,7 @@ body input[type=submit] { user-select: none }
   background-color: var(--color3);
   margin: 0 auto;
   padding: 20px;
-  max-width: 1000px;
+  max-width: 700px;
   border-radius: 5px;
 }
 
@@ -140,6 +152,13 @@ form {
   grid-template-columns: 70px auto 50px;
 }
 
+.inputLine > select:first-child,
+.inputLine > .text:first-child {
+  border-right: 1px solid var(--color4);
+}
+
+.inputLine.textInput > *:first-child { font-size: 15px }
+
 .inputLine > svg {
   width: 50px;
   height: calc(100% - 10px);
@@ -148,16 +167,41 @@ form {
   padding: 0 13px;
 }
 
+.textInput {
+  grid-template-columns: min-content auto 45px;
+}
+
+.textInput .text {
+  white-space: nowrap;
+  display: grid;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.textInput input {
+  min-width: 0;
+  padding-right: 0;
+  user-select: all;
+  pointer-events: all;
+  overflow: hidden;
+}
+
+.textInput input { cursor: text }
+.textInput svg { cursor: pointer }
+
 input, select, .button {
   background-color: transparent;
   border: none;
   max-width: 800px;
+  min-width: 0;
   padding: 10px;
   font-size: 16px;
   outline: none;
   display: grid;
   align-items: center;
 }
+
+select { cursor: pointer }
 
 option { background-color: var(--color3) }
 
@@ -190,7 +234,7 @@ input[type=submit]:hover, .button.green:hover { background-color: var(--color8-s
 
 .button.bigRed {
   grid-template-columns: auto;
-  background-color: var(--error);
+  background-color: var(--red);
   max-width: 400px;
   margin: 20px auto 10px;
 }
@@ -203,9 +247,9 @@ input[type=submit]:hover, .button.green:hover { background-color: var(--color8-s
   cursor: pointer;
 }
 
-.msgBlock.error { background-color: var(--error) }
-.msgBlock.warning { background-color: var(--warning) }
-.msgBlock.success { background-color: var(--success) }
+.msgBlock.error { background-color: var(--red) }
+.msgBlock.warning { background-color: var(--orange) }
+.msgBlock.success { background-color: var(--green) }
 
 .msgBlock {
   margin: 5px 0;
@@ -263,6 +307,11 @@ input[type=submit]:hover, .button.green:hover { background-color: var(--color8-s
   grid-column: 1 / 3;
   z-index: 1000;
   pointer-events: all;
+  box-shadow: var(--color2) 3px 1px 6px;
+}
+
+body.noScroll .statusBar {
+  box-shadow: var(--color2) 300px  1px 6px;
 }
 
 .statusBar .path {
@@ -298,9 +347,8 @@ input[type=submit]:hover, .button.green:hover { background-color: var(--color8-s
   display: grid;
   max-width: 400px;
   grid-template-rows: min-content auto;
-  background-color: var(--color2);
+  background-color: var(--color3);
   padding-left: 100px;
-  box-shadow: var(--color2) 3px 1px 6px;
   transition-duration: 500ms;
   transition-timing-function: cubic-bezier(0.7, -0.1, 0, 1.1);
   z-index: 200;
@@ -309,6 +357,7 @@ input[type=submit]:hover, .button.green:hover { background-color: var(--color8-s
 }
 
 .sideMenu.open {
+  box-shadow: var(--color2) 3px 1px 6px;
   transform: translateX(-100px);
   border: none;
 }
@@ -324,7 +373,6 @@ input[type=submit]:hover, .button.green:hover { background-color: var(--color8-s
   opacity: 0.8;
   cursor: pointer;
   background-color: var(--color3);
-  margin-top: 2px;
 }
 
 .rowButton > div > svg {
@@ -416,7 +464,7 @@ td { padding: 0 10px }
 .separator { height: 25px }
 .clickable { cursor: pointer }
 
-@media screen and (max-width: 350px) {
+@media screen and (max-width: 300px) {
   .statusBar .path *:not(.step:last-child) {
     font-size: 0 !important;
     padding: 0 !important;
@@ -430,14 +478,14 @@ td { padding: 0 10px }
   }
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 380px) {
   .statusBar .path .step:first-child {
     font-size: 0 !important;
     padding: 0;
   }
 
   .container.withHead { margin-top: 55px }
-  .container { padding: 10px }
+  .container { padding: 10px 6px }
   .block { padding: 15px }
   .separator { height: 15px }
 }
@@ -452,6 +500,10 @@ td { padding: 0 10px }
     backdrop-filter: brightness(0.8);
     cursor: pointer;
     pointer-events: all;
+  }
+
+  body.noScroll {
+    overflow-y: hidden;
   }
 }
 
