@@ -214,7 +214,7 @@ export default {
 
     auth.onIdTokenChanged((fUser) => {
       if (fUser) {
-        console.log('Signed', fUser);
+        console.log('Signed =>', fUser);
         this.fUser = { ...fUser };
         this.connectSocket();
       } else this.loading = false;
@@ -343,7 +343,7 @@ export default {
         this.user.markets = snap.get('markets') || [];
         this.user.money = snap.get('money') || 0;
 
-        console.log('Markets', this.user);
+        console.log('Markets =>', this.user);
         localStorage.setItem('user', JSON.stringify({
           money: this.user.money,
           markets: this.user.markets,
@@ -371,7 +371,7 @@ export default {
         else if (type === 'removed' && dI !== -1) this.transactions.splice(dI, 1);
       });
 
-      this.transactions = this.transactions.sort((a, b) => b.date - a.date);
+      this.transactions = this.transactions.sort((a, b) => b.date.seconds - a.date.seconds);
       localStorage.setItem('transactions', JSON.stringify(this.transactions));
     },
 

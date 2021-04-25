@@ -14,8 +14,6 @@ export default {
 
   data: () => ({
     lang: navigator.language.split('-')[0] || 'en',
-    // src: '',
-
     active: true,
   }),
 
