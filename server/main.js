@@ -16,6 +16,11 @@ firebase.initializeApp({
 const miakode = require('./miakode');
 const ws = require('./wsServer').server;
 
+const CORR = process.env.CORR || 0;
+function getDate() {
+  return new Date(Date.now() + CORR);
+}
+
 const auth = firebase.auth();
 const db = firebase.firestore();
 const fcm = firebase.messaging();
@@ -29,7 +34,7 @@ async function sendPush(userID, title, body = '', tag = '/') {
       token,
       data: { title, body, tag },
     }).then(() => {
-      tokenColl.doc(token).update({ lastUse: new Date() });
+      tokenColl.doc(token).update({ lastUse: getDate() });
     }).catch(() => {
       tokenColl.doc(token).delete();
     });
@@ -94,7 +99,7 @@ db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnap
       return;
     }
 
-    transacDoc.ref.update({ state: 'DONE', date: new Date() });
+    transacDoc.ref.update({ state: 'DONE', date: getDate() });
 
     fromUser.ref.update({
       money: firebase.firestore.FieldValue.increment(0 - value),
@@ -147,7 +152,7 @@ stocksAPI.on('price', (data) => {
         db.collection('candlevault_trades').doc(trade.id).update({
           state: 'OPEN',
           openVal: data.price,
-          openDate: new Date(),
+          openDate: getDate(),
         });
         return;
       }
@@ -173,7 +178,7 @@ stocksAPI.on('price', (data) => {
         db.collection('candlevault_trades').doc(trade.id).update({
           state: 'CLOSED',
           closeVal: data.price,
-          closeDate: new Date(),
+          closeDate: getDate(),
         });
 
         db.collection('candlevault_users').doc(trade.user).update({
@@ -243,7 +248,7 @@ stocksAPI.on('logged', () => {
 
 let incrementer = 0;
 
-console.log('Ready !');
+console.log(getDate(), 'Socket ready !');
 ws.on('connect', (socket) => {
   incrementer += 1;
 
