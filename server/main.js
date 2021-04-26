@@ -174,7 +174,11 @@ const userListeners = {};
 /** @type {MarketSymbol[]} */
 const subscribedSymbols = [];
 
+const lastPrices = {};
+
 stocksAPI.on('price', (data) => {
+  lastPrices[data.symbol] = data.price;
+
   Object.values(trades)
     .filter((t) => t.market === data.symbol && t.state !== 'CLOSED')
     .forEach((trade) => {
@@ -303,7 +307,7 @@ ws.on('connect', (socket) => {
         return;
       }
 
-      auth.verifyIdToken(userToken).then(async (fUser) => {
+      auth.verifyIdToken(userToken).then((fUser) => {
         if (fUser.uid !== userID) {
           socket.close(4001, 'WRONG_ACCOUNT_CHECK');
           return;
@@ -314,6 +318,27 @@ ws.on('connect', (socket) => {
         userListeners[userID][client.socketID] = (market, price) => {
           sendPacket(socket, P_TYPES.SERVER.MARKET, miakode.array.encode([market, price]));
         };
+
+        db.collection('candlevault_trades')
+          .where('user', '==', userID)
+          .where('state', '!=', 'CLOSED')
+          .get()
+          .then((tList) => {
+            const sent = [];
+            tList.forEach((trade) => {
+              const market = trade.get('market');
+              if (market && lastPrices[market]) {
+                if (sent.includes[market]) return;
+                console.log('Send', market, 'price', lastPrices[market]);
+                sendPacket(
+                  socket,
+                  P_TYPES.SERVER.MARKET,
+                  miakode.array.encode([market, lastPrices[market]]),
+                );
+                sent.push(market);
+              }
+            });
+          });
 
         socket.on('close', () => {
           delete userListeners[userID][client.socketID];
