@@ -22,7 +22,7 @@
             <div class="price">
               {{ (trade.state === 'OPEN'
                 ? formatNumber(values[trade.market])
-                : (trade.state === 'CLOSED' ? 'Closed' : 'Waiting...')) }}
+                : (trade.state === 'CLOSED' ? 'Closed' : 'Pending...')) }}
             </div>
 
             <div class="evol right" :class="{
