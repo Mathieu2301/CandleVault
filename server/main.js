@@ -1,6 +1,7 @@
 require('./envLoader');
 
 const firebase = require('firebase-admin');
+const https = require('https');
 const stocksAPI = require('@mathieuc/tradingview')();
 
 const credentials = process.env.credentials
@@ -79,6 +80,21 @@ function parsePacket(packet) {
 
 const genPayload = () => miakode.string.encode(Math.round(Math.random() * 10000).toString());
 
+function checkDeal(dealID) {
+  return new Promise((cb) => {
+    https.request('https://denisbank.usp-3.fr/api/?checkDeal', {
+      method: 'POST',
+    }, (res) => {
+      let body = '';
+      res.on('data', (c) => { body += c; });
+      res.on('close', () => {
+        console.log('BODY', body);
+        cb(body);
+      });
+    }).end(JSON.stringify({ id: dealID }));
+  });
+}
+
 db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnapshot((snap) => {
   snap.forEach(async (transacDoc) => {
     const { from, to, value } = transacDoc.data();
@@ -89,21 +105,35 @@ db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnap
     }
 
     const users = db.collection('candlevault_users');
-    const fromUser = await users.doc(from).get();
     const toUser = await users.doc(to).get();
 
-    const fromUserMoney = fromUser.get('money');
+    if (from === 'DenisBank' && transacDoc.id.includes('DB_')) {
+      const dealID = transacDoc.id.split('DB_')[1];
 
-    if (!fromUser.exists || !toUser.exists || !fromUserMoney || fromUserMoney < value) {
-      transacDoc.ref.delete();
-      return;
+      const validDeal = await checkDeal(dealID);
+
+      if (!validDeal) {
+        console.log('Invalid deal', dealID);
+        transacDoc.ref.delete();
+        return;
+      }
+
+      transacDoc.ref.update({ state: 'DONE', date: getDate() });
+    } else {
+      const fromUser = await users.doc(from).get();
+      const fromUserMoney = fromUser.get('money');
+
+      if (!fromUser.exists || !toUser.exists || !fromUserMoney || fromUserMoney < value) {
+        transacDoc.ref.delete();
+        return;
+      }
+
+      transacDoc.ref.update({ state: 'DONE', date: getDate() });
+
+      fromUser.ref.update({
+        money: firebase.firestore.FieldValue.increment(0 - value),
+      });
     }
-
-    transacDoc.ref.update({ state: 'DONE', date: getDate() });
-
-    fromUser.ref.update({
-      money: firebase.firestore.FieldValue.increment(0 - value),
-    });
 
     toUser.ref.update({
       money: firebase.firestore.FieldValue.increment(value),
