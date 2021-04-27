@@ -224,7 +224,7 @@ stocksAPI.on('price', (data) => {
         const formattedEvol = new Intl.NumberFormat('fr-FR', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        }).format(Math.abs(evol));
+        }).format(Math.abs(evol * 100));
 
         const formattedGain = new Intl.NumberFormat('fr-FR', {
           style: 'currency',
