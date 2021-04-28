@@ -219,17 +219,15 @@ stocksAPI.on('price', (data) => {
           money: firebase.firestore.FieldValue.increment(gain),
         });
 
-        const evol = (data.price / trade.openVal) - 1;
-
-        const formattedEvol = new Intl.NumberFormat('fr-FR', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }).format(Math.abs(evol * 100));
-
         const formattedGain = new Intl.NumberFormat('fr-FR', {
           style: 'currency',
           currency: 'EUR',
         }).format(Math.abs(gain));
+
+        const evol = (data.price / trade.openVal) - 1;
+        const formattedEvol = new Intl.NumberFormat('fr-FR', {
+          minimumFractionDigits: 2,
+        }).format(Math.abs(evol * 100));
 
         sendPush(
           trade.user,

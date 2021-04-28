@@ -21,7 +21,7 @@
 
             <div class="price">
               {{ (trade.state === 'OPEN'
-                ? formatNumber(values[trade.market])
+                ? formatNumber(values[trade.market], 5)
                 : (trade.state === 'CLOSED' ? 'Closed' : 'Pending...')) }}
             </div>
 
@@ -54,13 +54,13 @@
 
           <div class="stateLine">
             <div>Open</div>
-            <div>{{ formatNumber(trade.openVal) }}</div>
+            <div>{{ formatNumber(trade.openVal, 5) }}</div>
             <div class="date right">{{ getDate(trade.openDate) }}</div>
           </div>
 
           <div class="stateLine">
             <div>Close</div>
-            <div>{{ trade.closeVal ? formatNumber(trade.closeVal) : '...' }}</div>
+            <div>{{ trade.closeVal ? formatNumber(trade.closeVal, 5) : '...' }}</div>
             <div class="date right">{{ getDate(trade.closeDate) }}</div>
           </div>
 
@@ -115,22 +115,24 @@ export default {
   },
 
   methods: {
-    toEuro(val) {
-      return !val
-        ? '0,00 €'
-        : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val);
+    toEuro(val = 0) {
+      return new Intl.NumberFormat(navigator.languages, {
+        style: 'currency',
+        currency: 'EUR',
+      }).format(val);
     },
 
-    formatNumber(val) {
-      return !val
-        ? '0,00'
-        : new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+    formatNumber(val = 0, maximumFractionDigits = 3) {
+      return new Intl.NumberFormat(navigator.languages, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits,
+      }).format(val);
     },
 
     calcEvol(trade) {
       const last = trade.closeVal || this.values[trade.market];
       const evol = ((last / trade.openVal) - 1) * 100;
-      return `${evol > 0 ? '+' : ''}${this.formatNumber(evol)} %`;
+      return `${evol > 0 ? '+' : '-'}${this.formatNumber(Math.abs(evol), 2)} %`;
     },
 
     calcGain(trade) {

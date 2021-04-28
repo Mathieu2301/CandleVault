@@ -242,10 +242,12 @@ export default {
       this.sendPacket('\x12', miakode.string.encode(`${this.searchFilter}${this.search}`));
     },
 
-    toEuro(val) {
-      return !val
-        ? '0,00 €'
-        : new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val);
+    toEuro(val = 0) {
+      return new Intl.NumberFormat(navigator.languages, {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: (val < 10 ** 6 ? 2 : 0),
+      }).format(val);
     },
 
     fav(market) {
