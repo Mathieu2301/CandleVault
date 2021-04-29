@@ -265,7 +265,7 @@ stocksAPI.on('logged', () => {
           subscribedSymbols.push(symbol);
           stocksAPI.subscribe(symbol);
           console.log('Subscribe to', symbol);
-        } else if (state === 'CLOSED' && subscribedSymbols.includes(symbol)) {
+        } else if (state === 'CLOSED' && change.type === 'modified' && subscribedSymbols.includes(symbol)) {
           const checkLastTrade = Object.values(trades).findIndex((t) => (
             t.market === symbol && t.state === 'OPEN'));
 
