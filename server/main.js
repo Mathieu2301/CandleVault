@@ -229,9 +229,11 @@ stocksAPI.on('price', (data) => {
           minimumFractionDigits: 2,
         }).format(Math.abs(evol * 100));
 
+        const type = (trade.lever > 0 ? 'BUY' : 'SELL');
+
         sendPush(
           trade.user,
-          `${trade.market} trade closed (${evol > 0 ? '+' : '-'}${formattedEvol}%)`,
+          `${trade.market} (${type}) trade closed (${evol > 0 ? '+' : '-'}${formattedEvol}%)`,
           `Gain/Loss: ${gain > 0 ? '+' : '-'}${formattedGain}`,
           `${trade.market}`,
         );
