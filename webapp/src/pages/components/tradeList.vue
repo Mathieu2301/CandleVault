@@ -115,18 +115,18 @@ export default {
   },
 
   methods: {
-    toEuro(val = 0) {
+    toEuro(val) {
       return new Intl.NumberFormat(navigator.languages, {
         style: 'currency',
         currency: 'EUR',
-      }).format(val);
+      }).format(val || 0);
     },
 
-    formatNumber(val = 0, maximumFractionDigits = 3) {
+    formatNumber(val, maximumFractionDigits = 3) {
       return new Intl.NumberFormat(navigator.languages, {
         minimumFractionDigits: 2,
         maximumFractionDigits,
-      }).format(val);
+      }).format(val || 0);
     },
 
     calcEvol(trade) {
