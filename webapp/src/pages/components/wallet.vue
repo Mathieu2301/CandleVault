@@ -1,7 +1,7 @@
 <template>
   <div class="block">
     <div class="title">Wallet</div>
-    <div v-if="wallet && Object.keys(wallet).length > 0">
+    <div v-if="wallet.markets && Object.keys(wallet.markets).length > 0">
       <div class="market clickable"
         v-for="(market, symbol) in wallet.markets"
         :key="symbol"
