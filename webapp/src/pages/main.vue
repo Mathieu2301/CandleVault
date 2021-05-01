@@ -48,7 +48,7 @@
 
           <div class="separator"/>
 
-          <tradeList :trades="trades" :values="values"/>
+          <wallet :trades="trades" :values="values"/>
 
           <div class="separator"/>
 
@@ -155,7 +155,7 @@ import accountSettings from './settings/account.vue';
 import TradingView from './components/TradingView.vue';
 import transactionForm from './components/transactionForm.vue';
 import transactionList from './components/transactionList.vue';
-import tradeList from './components/tradeList.vue';
+import wallet from './components/wallet.vue';
 
 /** @type {import('firebase').default.auth.Auth} */
 const auth = window.auth;
@@ -178,7 +178,7 @@ export default {
     accountSettings,
     transactionForm,
     transactionList,
-    tradeList,
+    wallet,
   },
 
   data: () => ({
@@ -464,6 +464,7 @@ select.filters {
   display: grid;
   justify-content: end;
   grid-template: auto / auto 50px;
+  border: solid 1px var(--color4);
 }
 
 .right {
