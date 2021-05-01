@@ -518,6 +518,10 @@ td { padding: 0 10px }
   .sideMenu {
     transform: translateX(-100px);
   }
+
+  .statusBar {
+    box-shadow: var(--color2) 300px  1px 6px;
+  }
 }
 
 </style>
