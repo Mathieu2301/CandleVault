@@ -325,7 +325,8 @@ export default {
         .onSnapshot((snap) => {
           this.trades = snap.docs
             .map((doc) => ({ id: doc.id, openDate: { seconds: 10 ** 10 }, ...doc.data() }))
-            .sort((a, b) => b.openDate.seconds - a.openDate.seconds);
+            .sort((a, b) => (b.openDate.seconds / (b.closeDate ? 2 : 1))
+              - (a.openDate.seconds / (a.closeDate ? 2 : 1)));
 
           console.log('Trades =>', this.trades);
           localStorage.setItem('trades', JSON.stringify(this.trades));
