@@ -187,7 +187,7 @@ export default {
     socket: null,
 
     trades: JSON.parse(localStorage.getItem('trades') || '[]'),
-    user: JSON.parse(localStorage.getItem('user') || 0) || { markets: [], money: 0 },
+    user: JSON.parse(localStorage.getItem('user') || 0) || { markets: [], money: 0, displayName: '' },
     transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
     values: JSON.parse(sessionStorage.getItem('marketValues') || '{}'),
 
@@ -340,14 +340,20 @@ export default {
 
     async listenUser() {
       const userDoc = db.collection('candlevault_users').doc(auth.currentUser.uid);
-      if (!(await userDoc.get()).exists) userDoc.set({ money: 0, markets: [] });
+      if (!(await userDoc.get()).exists) userDoc.set({ money: 100, markets: [], displayName: '' });
 
       userDoc.onSnapshot((snap) => {
         this.user.markets = snap.get('markets') || [];
         this.user.money = snap.get('money') || 0;
+        this.user.displayName = snap.get('displayName') || '';
 
-        console.log('Markets =>', this.user);
+        if (this.user.displayName !== auth.currentUser.displayName) {
+          userDoc.update({ displayName: auth.currentUser.displayName });
+        }
+
+        console.log('User =>', this.user);
         localStorage.setItem('user', JSON.stringify({
+          displayName: this.user.displayName,
           money: this.user.money,
           markets: this.user.markets,
         }));

@@ -96,6 +96,11 @@ export default {
         return;
       }
 
+      if (this.user.money - amount < 100) {
+        toast.error({ title: 'You don\'t have enough money, you have to keep at least 100€ on your account' });
+        return;
+      }
+
       if (this.accountID === this.fUser.uid) {
         toast.error({ title: 'You can\'t send money to yourself' });
         return;
