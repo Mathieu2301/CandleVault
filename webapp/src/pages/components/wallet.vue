@@ -3,7 +3,7 @@
     <div class="title">Wallet</div>
     <div v-if="wallet && Object.keys(wallet).length > 0">
       <div class="market clickable"
-        v-for="(market, symbol) in wallet"
+        v-for="(market, symbol) in wallet.markets"
         :key="symbol"
         @click="gotoMarket(symbol)"
       >
@@ -34,7 +34,30 @@
             <div class="gain right" :class="{
               green: market.gain > 0,
               red: market.gain < 0,
-            }">{{ toEuro(market.gain) }}</div>
+            }">{{ market.gain >= 0 ? '+' : '-' }}{{ toEuro(market.gain) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="separator"/>
+
+      <div class="market">
+        <div class="head">
+          <div class="line3">
+            <div class="bold left">Total</div>
+            <div class="value left">{{ toEuro(wallet.global.value) }}</div>
+
+            <div class="evol" :class="{
+              green: wallet.global.evol > 0,
+              red: wallet.global.evol < 0,
+            }">
+              {{ wallet.global.evol >= 0 ? '+' : '-' }}{{ formatNumber(wallet.global.evol, 2) }} %
+            </div>
+
+            <div class="gain right" :class="{
+              green: wallet.global.gain > 0,
+              red: wallet.global.gain < 0,
+            }">{{ wallet.global.gain >= 0 ? '+' : '-' }}{{ toEuro(wallet.global.gain) }}</div>
           </div>
         </div>
       </div>
@@ -48,9 +71,6 @@
 export default {
   name: 'Wallet',
 
-  data: () => ({
-  }),
-
   props: {
     trades: Array,
     values: Object,
@@ -59,32 +79,38 @@ export default {
 
   computed: {
     wallet() {
+      const global = {
+        value: 0, gain: 0, evol: 0, nowValue: 0,
+      };
       const markets = {};
 
       this.trades.filter((t) => t.state === 'OPEN').forEach((trade) => {
         if (!markets[trade.market]) {
           markets[trade.market] = {
-            nbr: 0, value: 0, gain: 0, starts: 0, nowValue: 0,
+            nbr: 0, value: 0, nowValue: 0, openValues: 0, gain: 0,
           };
         }
         const value = trade.value * trade.lever;
         markets[trade.market].nbr += 1;
         markets[trade.market].value += value;
-        markets[trade.market].starts += trade.openVal;
         markets[trade.market].nowValue += (this.values[trade.market] / trade.openVal) * value;
+        markets[trade.market].openValues += trade.openVal;
         markets[trade.market].gain += (this.values[trade.market] - trade.openVal)
           * (value / trade.openVal);
-
-        // markets[trade.market].evol += ((this.values[trade.market] / trade.openVal) - 1) * 100;
       });
 
       Object.keys(markets).forEach((symbol) => {
         const market = markets[symbol];
+        markets[symbol].evol = ((this.values[symbol] / (market.openValues / market.nbr)) - 1) * 100;
 
-        const openAvg = market.starts / market.nbr;
-        markets[symbol].evol = ((this.values[symbol] / openAvg) - 1) * 100;
+        global.value += market.value;
+        global.nbr += market.nbr;
+        global.gain += market.gain;
+        global.nowValue += market.nowValue;
+        global.evol = ((global.nowValue / global.value) - 1) * 100;
       });
-      return markets;
+
+      return { global, markets };
     },
   },
 
@@ -97,7 +123,7 @@ export default {
       return new Intl.NumberFormat(navigator.languages, {
         style: 'currency',
         currency: 'EUR',
-      }).format(val || 0);
+      }).format(Math.abs(val || 0));
     },
 
     formatNumber(val, maximumFractionDigits = 3) {
@@ -127,6 +153,11 @@ export default {
 .line2 {
   display: grid;
   grid-template-columns: 35px auto auto auto;
+}
+
+.line3 {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
 }
 
 .market > div > div > div {
