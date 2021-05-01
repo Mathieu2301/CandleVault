@@ -14,6 +14,11 @@ firebase.initializeApp({
   databaseURL: process.env.DB_URL || 'https://iridium-blast.firebaseio.com',
 });
 
+setTimeout(() => { // Auto restart every hour
+  console.log('Restarting...');
+  process.exit(0);
+}, 3600000);
+
 const miakode = require('./miakode');
 const ws = require('./wsServer').server;
 

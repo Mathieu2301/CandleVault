@@ -461,7 +461,6 @@ select.filters {
 .twContainer > .right {
   position: absolute;
   border-radius: 3px;
-  border: solid 1px var(--color4);
   display: grid;
   justify-content: end;
   grid-template: auto / auto 50px;

@@ -53,6 +53,9 @@ export default {
   },
 
   beforeCreate() {
+    const market = (this.$route.params.market).toUpperCase();
+    if (market !== this.$route.params.market) this.$router.push(`/${market}/${this.$route.params.page}`);
+
     if (!['Trades', 'Chart'].includes(this.$route.params.page)) {
       this.$router.push(`/${this.$route.params.market}/Trades`);
     }
