@@ -102,13 +102,12 @@ export default {
       Object.keys(markets).forEach((symbol) => {
         const market = markets[symbol];
         markets[symbol].evol = ((this.values[symbol] / (market.openValues / market.nbr)) - 1) * 100;
-
-        global.value += market.value;
-        global.nbr += market.nbr;
-        global.gain += market.gain;
-        global.nowValue += market.nowValue;
-        global.evol = ((global.nowValue / global.value) - 1) * 100;
+        global.value += (market.value || 0);
+        global.gain += (market.gain || 0);
+        global.nowValue += (market.nowValue || 0);
       });
+
+      if (global.value) global.evol = ((global.nowValue / global.value) - 1) * 100;
 
       return { global, markets };
     },
