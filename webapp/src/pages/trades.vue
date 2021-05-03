@@ -217,6 +217,7 @@ export default {
 
 input[type=datetime-local] {
   display: block;
+  width: 100%;
 }
 input[type=datetime-local]::-webkit-calendar-picker-indicator {
   filter: invert(1);
