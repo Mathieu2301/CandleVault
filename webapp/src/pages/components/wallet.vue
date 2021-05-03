@@ -90,7 +90,7 @@ export default {
             nbr: 0, value: 0, nowValue: 0, openValues: 0, gain: 0,
           };
         }
-        const value = trade.value * Math.abs(trade.lever);
+        const value = trade.value * trade.lever;
         markets[trade.market].nbr += 1;
         markets[trade.market].value += value;
         markets[trade.market].nowValue += (this.values[trade.market] / trade.openVal) * value;
