@@ -26,9 +26,9 @@
 
           <div class="line2">
             <div class="bold" :class="{
-              green: market.evol > 0,
-              red: market.evol < 0,
-            }">{{ market.evol >= 0 ? 'G' : 'L' }}</div>
+              green: market.gain > 0,
+              red: market.gain < 0,
+            }">{{ market.gain >= 0 ? 'G' : 'L' }}</div>
             <div class="value left">{{ toEuro(market.value) }}</div>
             <div class="value">{{ toEuro(market.nowValue) }}</div>
             <div class="gain right" :class="{
