@@ -22,7 +22,7 @@
 
         <div style="height:10px"/>
 
-        <div class="inputLine">
+        <div class="inputLine textInput">
           <select v-model="lever">
             <option value="1">x1</option>
             <option value="2">x2</option>
@@ -33,15 +33,26 @@
             <option value="30">x30</option>
           </select>
           <input type="text" placeholder="10,00 €" v-model="value">
+          <!-- eslint-disable-next-line -->
+          <svg viewBox="-2 0 25 24"><path d="M12,2A10,10,0,1,0,22,12,10.0117,10.0117,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8.0092,8.0092,0,0,1,12,20ZM8,9h8v2H8Zm0,4h8v2H8Z"/></svg>
         </div>
 
-        <div class="inputLine textInput">
+        <div class="inputLine textInput w100">
           <div class="text">Take profit</div>
           <input type="text" placeholder="10,00 €" v-model="TP">
+          <svg viewBox="-10 -5 130 100" style="transform:rotate(180deg)">
+            <polygon points="5,18.654 49.996,81.346 95,18.654"/>
+          </svg>
         </div>
-        <div class="inputLine textInput">
+        <div class="inputLine textInput w100">
           <div class="text">Stop loss</div>
           <input type="text" placeholder="10,00 €" v-model="SL">
+          <svg viewBox="-20 0 130 100"><polygon points="5,18.654 49.996,81.346 95,18.654"/></svg>
+        </div>
+
+        <div class="inputLine textInput dateInput" :class="{ disabled: !autoClose }">
+          <div class="text" @click="autoClose = ''">Auto close</div>
+          <input type="datetime-local" v-model="autoClose">
         </div>
 
         <div class="separator"/>
@@ -99,6 +110,8 @@ export default {
     lever: 1,
     value: '',
 
+    autoClose: '',
+
     lang: navigator.language.split('-')[0] || 'en',
   }),
 
@@ -118,6 +131,10 @@ export default {
       this.value = this.value.replace(/[^0-9.]/g, '');
       if (!this.SL) this.SL = this.value;
       if (!this.TP) this.TP = this.value;
+    },
+    autoClose() {
+      const cDate = new Date(this.autoClose);
+      if (cDate.getTime() < Date.now()) this.autoClose = '';
     },
   },
 
@@ -155,6 +172,12 @@ export default {
         lever: this.buy ? parseFloat(this.lever) : (0 - parseFloat(this.lever)),
       };
 
+      if (this.autoClose) {
+        const cDate = new Date(this.autoClose);
+        if (cDate.getTime() > Date.now()) trade.autoClose = cDate;
+        else this.autoClose = '';
+      }
+
       localStorage.setItem('defaultTrade', JSON.stringify({
         TP: this.TP,
         SL: this.SL,
@@ -181,5 +204,21 @@ export default {
   max-width: 350px;
   width: 100%;
   margin-top: -30px;
+}
+
+.w100 {
+  grid-template-columns: 95px auto 45px;
+}
+
+.textInput.dateInput {
+  margin-top: 10px;
+  grid-template-columns: 95px auto 7px;
+}
+
+input[type=datetime-local] {
+  display: block;
+}
+input[type=datetime-local]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 </style>

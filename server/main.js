@@ -165,12 +165,13 @@ db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnap
  *  lever: number,
  *  TP: number,
  *  SL: number,
+ *  autoClose?: { seconds: number },
  *  openVal?: number,
  *  closeVal?: number,
  * }} Trade
  */
 
-/** @type {Object<string, Trade} */
+/** @type {Object<string, Trade>} */
 let trades = {};
 
 /** @type {{ [userID: string]: { [socketID: number]: Function }} */
@@ -199,7 +200,11 @@ stocksAPI.on('price', (data) => {
       const gain = (data.price - trade.openVal) * (trade.value / trade.openVal) * trade.lever;
 
       if (trade.state === 'OPEN') {
-        if (gain > trade.TP || gain < (0 - trade.SL)) {
+        if (gain > trade.TP || gain < (0 - trade.SL) || (
+          trade.autoClose
+          && trade.autoClose.seconds
+          && new Date(trade.autoClose.seconds * 1000).getTime() < Date.now()
+        )) {
           db.collection('candlevault_trades').doc(trade.id).update({
             state: 'WAITFORCLOSE',
           });

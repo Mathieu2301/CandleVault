@@ -60,8 +60,12 @@
 
           <div class="stateLine">
             <div>Close</div>
-            <div>{{ trade.closeVal ? formatNumber(trade.closeVal, 5) : '...' }}</div>
-            <div class="date right">{{ getDate(trade.closeDate) }}</div>
+            <div>{{
+              trade.closeVal
+                ? formatNumber(trade.closeVal, 5)
+                : (trade.autoClose ? '-' : '...')
+            }}</div>
+            <div class="date right">{{ getDate(trade.closeDate || trade.autoClose) }}</div>
           </div>
 
           <div class="closeBtn redBg button"

@@ -184,9 +184,9 @@ form {
   user-select: all;
   pointer-events: all;
   overflow: hidden;
+  cursor: text
 }
 
-.textInput input { cursor: text }
 .textInput svg { cursor: pointer }
 
 input, select, .button {
