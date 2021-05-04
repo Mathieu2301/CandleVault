@@ -341,6 +341,7 @@ export default {
     listenTrades() {
       db.collection('candlevault_trades')
         .where('user', '==', auth.currentUser.uid)
+        .orderBy('openDate', 'desc')
         .onSnapshot((snap) => {
           this.trades = snap.docs
             .map((doc) => ({ id: doc.id, openDate: { seconds: 10 ** 10 }, ...doc.data() }))

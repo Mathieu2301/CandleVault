@@ -49,6 +49,8 @@ async function sendPush(userID, title, body = '', tag = '/') {
   });
 }
 
+global.sendPush = sendPush;
+
 /** @enum @const */
 const P_TYPES = {
   /** From server (0x) */
@@ -249,7 +251,7 @@ stocksAPI.on('price', (data) => {
           trade.user,
           `${trade.market} (${type}) trade closed (${evol > 0 ? '+' : '-'}${formattedEvol}%)`,
           `Gain/Loss: ${gain > 0 ? '+' : '-'}${formattedGain}`,
-          `${trade.market}`,
+          trade.market,
         );
       }
     });
@@ -431,3 +433,5 @@ ws.on('connect', (socket) => {
     clearInterval(pingInterval);
   });
 });
+
+require('./backgroundHelper');
