@@ -14,7 +14,7 @@
   "author": "Mathieu Colmon",
   "license": "ISC",
   "dependencies": {
-    "@mathieuc/tradingview": "^1.4.0",
+    "@mathieuc/tradingview": "^1.9.0",
     "firebase-admin": "^9.6.0",
     "websocket": "^1.0.34"
   },

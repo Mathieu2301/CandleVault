@@ -81,7 +81,13 @@
       </template>
 
       <template v-else>
-        <router-view :fUser="fUser" :user="user" :trades="trades" :values="values"/>
+        <router-view
+          :fUser="fUser"
+          :user="user"
+          :trades="trades"
+          :values="values"
+          :TAResults="TAResults"
+        />
       </template>
     </div>
 
@@ -197,6 +203,7 @@ export default {
     searchFilter: JSON.parse(localStorage.getItem('searchFilter') || 0),
     search: '',
     searchResults: [],
+    TAResults: '0'.repeat(24).split(''),
 
     menuOpen: false,
     lang: navigator.language.split('-')[0] || 'en',
@@ -224,6 +231,8 @@ export default {
       if (direction === 'right') this.menuOpen = true;
       else if (direction === 'left') this.menuOpen = false;
     });
+
+    setInterval(this.loadTA, 10000);
   },
 
   methods: {
@@ -240,6 +249,11 @@ export default {
       if (!this.search) this.searchResults = [];
       if (!this.socket || !this.search) return;
       this.sendPacket('\x12', miakode.string.encode(`${this.searchFilter}${this.search}`));
+    },
+
+    loadTA() {
+      if (!this.$route.params.market) return;
+      this.sendPacket('\x13', miakode.string.encode(this.$route.params.market));
     },
 
     toEuro(val) {
@@ -275,6 +289,7 @@ export default {
           auth.currentUser.uid,
           await auth.currentUser.getIdToken(),
         ]));
+        this.loadTA();
       };
 
       this.socket.onerror = () => {};
@@ -308,6 +323,10 @@ export default {
             console.log('Search results', this.searchResults);
             break;
 
+          case '\x03': // TA RESULTS
+            this.TAResults = miakode.array.decode(data).filter((s) => s);
+            break;
+
           default:
             console.log('Unknown packet', type, data);
             break;
@@ -316,7 +335,7 @@ export default {
     },
 
     sendPacket(...chunks) {
-      if (this.socket) this.socket.send(new Blob(chunks));
+      if (this.socket && this.socket.readyState === 1) this.socket.send(new Blob(chunks));
     },
 
     listenTrades() {
@@ -412,6 +431,13 @@ export default {
   },
 
   watch: {
+    $route(from, to) {
+      if (from.params.market !== to.params.market) {
+        this.TAResults = '0'.repeat(24).split('');
+        this.loadTA();
+      }
+    },
+
     searchFilter() {
       localStorage.setItem('searchFilter', this.searchFilter);
       this.searchMarket();

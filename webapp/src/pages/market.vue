@@ -9,6 +9,7 @@
       :fUser="fUser"
       :trades="trades"
       :values="values"
+      :TAResults="TAResults"
     />
 
     <div class="bottomTabs">
@@ -50,6 +51,7 @@ export default {
     fUser: Object,
     trades: Array,
     values: Object,
+    TAResults: Array,
   },
 
   beforeCreate() {

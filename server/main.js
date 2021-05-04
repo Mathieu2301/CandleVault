@@ -22,6 +22,8 @@ setTimeout(() => { // Auto restart every hour
 const miakode = require('./miakode');
 const ws = require('./wsServer').server;
 
+const filters = ['stock', 'futures', 'forex', 'cfd', 'crypto', 'index', 'economic'];
+
 const CORR = process.env.CORR || 0;
 function getDate() {
   return new Date(Date.now() + CORR);
@@ -54,6 +56,7 @@ const P_TYPES = {
     PING: '\x00',
     MARKET: '\x01',
     S_RESULTS: '\x02',
+    TA_RESULTS: '\x03',
   },
 
   /** From user (2x) */
@@ -61,6 +64,7 @@ const P_TYPES = {
     PONG: '\x10',
     AUTH: '\x11',
     SEARCH: '\x12',
+    TA: '\x13',
   },
 };
 
@@ -338,7 +342,7 @@ ws.on('connect', (socket) => {
             tList.forEach((trade) => {
               const market = trade.get('market');
               if (market && lastPrices[market]) {
-                if (sent.includes[market]) return;
+                if (sent.includes(market)) return;
                 console.log('Send', market, 'price', lastPrices[market]);
                 sendPacket(
                   socket,
@@ -366,7 +370,7 @@ ws.on('connect', (socket) => {
 
     if (msg.type === P_TYPES.CLIENT.SEARCH) {
       const parsed = miakode.string.decode(msg.data);
-      const filter = ['stock', 'futures', 'forex', 'cfd', 'crypto', 'index', 'economic'][parsed[0]];
+      const filter = filters[parsed[0]];
       const query = parsed.substring(1);
 
       const results = (await stocksAPI.search(query, filter))
@@ -374,6 +378,32 @@ ws.on('connect', (socket) => {
         .filter((v, i, s) => s.indexOf(v) === i)
         .slice(0, 10);
       sendPacket(socket, P_TYPES.SERVER.S_RESULTS, miakode.array.encode(results));
+      return;
+    }
+
+    if (msg.type === P_TYPES.CLIENT.TA) {
+      const symbol = miakode.string.decode(msg.data);
+
+      const searchRs = (await stocksAPI.search(symbol));
+      if (!searchRs || !searchRs[0] || !searchRs[0].id) return;
+      const market = searchRs[0];
+
+      const exchange = (['forex', 'crypto'].includes(market.type)
+        ? market.type
+        : stocksAPI.getScreener(market.exchange)
+      );
+
+      let results = [];
+      try {
+        const TA = await stocksAPI.getTA(exchange, market.id);
+        Object.values(TA).forEach((AN) => {
+          results.push(AN.All, AN.MA, AN.Other);
+        });
+      } catch (ex) {
+        results = '0'.repeat(24).split('');
+      }
+
+      sendPacket(socket, P_TYPES.SERVER.TA_RESULTS, miakode.array.encode(results));
       return;
     }
 

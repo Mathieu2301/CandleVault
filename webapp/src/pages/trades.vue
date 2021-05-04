@@ -1,6 +1,40 @@
 <template>
   <div class="market">
-    <TradingView type="technical-analysis" id="marketAnalys"/>
+    <div class="block">
+      <div class="title">Techinal analysis</div>
+      <div class="TAContainer" v-if="TAResults.length > 0">
+        <div class="firstColumn">
+          <div>Interval</div>
+          <div>1 minute</div>
+          <div>5 minute</div>
+          <div>15 minute</div>
+          <div>1 hour</div>
+          <div>4 hours</div>
+          <div>1 day</div>
+          <div>1 week</div>
+          <div>1 month</div>
+        </div>
+        <div class="valuesGrid">
+          <div>ALL</div>
+          <div>MA</div>
+          <div>OSC</div>
+          <div class="item"
+            v-for="(v, i) in TAResults"
+            :key="i"
+            :class="{
+              weak: Math.abs(v) <= 1,
+              strong: Math.abs(v) > 1,
+              sell: v < 0,
+              buy: v > 0,
+              neutral: v == 0,
+            }"
+          >{{ v }}</div>
+        </div>
+      </div>
+      <div v-else>Loading...</div>
+    </div>
+
+    <div class="separator"/>
 
     <div class="tabs">
       <div class="tab" :class="{ selected: buy }"
@@ -83,7 +117,6 @@
 
 <script>
 import tradeList from './components/tradeList.vue';
-import TradingView from './components/TradingView.vue';
 
 /** @type {import('firebase').default.firestore.Firestore} */
 const db = window.db;
@@ -94,13 +127,14 @@ const toast = window.toast;
 export default {
   name: 'MarketAction',
 
-  components: { tradeList, TradingView },
+  components: { tradeList },
 
   props: {
     user: Object,
     fUser: Object,
     trades: Array,
     values: Object,
+    TAResults: Array,
   },
 
   data: () => ({
@@ -135,6 +169,10 @@ export default {
     autoClose() {
       const cDate = new Date(this.autoClose);
       if (cDate.getTime() < Date.now()) this.autoClose = '';
+    },
+
+    TAResults() {
+      console.log('TAUPDATE');
     },
   },
 
@@ -195,6 +233,43 @@ export default {
 </script>
 
 <style scoped>
+.firstColumn {
+  display: grid;
+}
+
+.TAContainer {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  max-width: 400px;
+  margin: 0 auto;
+  border: 1px solid var(--color4);
+  border-bottom: none;
+  border-right: none;
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template: 1fr 1fr 1fr / auto auto auto;
+}
+
+.TAContainer > div > div {
+  height: 35px;
+  display: grid;
+  align-content: center;
+  border: 1px solid var(--color4);
+  border-top: none;
+  border-left: none;
+}
+
+.item { opacity: 0.9; }
+.item.sell { color: var(--red) }
+.item.buy { color: var(--color8-s) }
+.item.neutral { color: var(--color4) }
+
+.item.strong { color: var(--lightFont) }
+.item.strong.sell { background-color: var(--red) }
+.item.strong.buy { background-color: var(--green) }
+
 .market {
   margin-bottom: 50px;
 }
