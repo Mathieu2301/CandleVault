@@ -22,13 +22,12 @@
             v-for="(v, i) in TAResults"
             :key="i"
             :class="{
-              weak: Math.abs(v) <= 1,
               strong: Math.abs(v) > 1,
-              sell: v < 0,
-              buy: v > 0,
-              neutral: v == 0,
+              sell: v < -0.5,
+              buy: v > 0.5,
+              neutral: Math.abs(v) <= 0.5,
             }"
-          >{{ v }}</div>
+          >{{ formatNumber(v) }}</div>
         </div>
       </div>
       <div v-else>Loading...</div>
@@ -170,13 +169,16 @@ export default {
       const cDate = new Date(this.autoClose);
       if (cDate.getTime() < Date.now()) this.autoClose = '';
     },
-
-    TAResults() {
-      console.log('TAUPDATE');
-    },
   },
 
   methods: {
+    formatNumber(val) {
+      return new Intl.NumberFormat(navigator.languages, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(val || 0);
+    },
+
     newTrade(e) {
       e.preventDefault();
 
