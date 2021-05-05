@@ -76,6 +76,7 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
         alerts.push({
           market: t.market,
           tradeType: (t.lever > 0 ? 'BUY' : 'SELL'),
+          adviceType: symbolAdvice[t.market].type,
           rel: symbolAdvice[t.market].rel,
           short: symbolAdvice[t.market].short,
           long: symbolAdvice[t.market].long,
@@ -137,7 +138,7 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
       if (!markets.length || markets.length < 2) markets = [...markets, ...recommandedMarkets];
 
       const advList = (await Promise.all(markets.map((m) => getAdvice(m))))
-        .filter((a) => a && a.rel >= 10).sort((a, b) => b.rel - a.rel);
+        .filter((a) => a && a.rel >= 12).sort((a, b) => b.rel - a.rel);
 
       if (!advList || !advList[0]) return;
 
@@ -163,9 +164,12 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
             `Trade value: ${euro.format(alert.value)}`,
             `Loss risk: ${euro.format(alert.SL)}`,
             '',
+            `Recommended: ${alert.adviceType}`,
             `Relevance: ${nbr.format(alert.rel)}`,
             `Short sum: ${nbr.format(alert.short)}`,
             `Long sum: ${nbr.format(alert.long)}`,
+            '',
+            `For ${user.displayName}`,
           ].join('\n'),
           alert.market,
         );
