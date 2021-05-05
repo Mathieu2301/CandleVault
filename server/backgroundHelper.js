@@ -77,6 +77,7 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
           market: t.market,
           tradeType: (t.lever > 0 ? 'BUY' : 'SELL'),
           adviceType: symbolAdvice[t.market].type,
+          interval: symbolAdvice[t.market].interval,
           rel: symbolAdvice[t.market].rel,
           short: symbolAdvice[t.market].short,
           long: symbolAdvice[t.market].long,
@@ -152,6 +153,8 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
         currency: 'EUR',
       });
 
+      const ITEXT = { SHORT: '1 minute - 4 hours', LONG: '1 day - 1 month' };
+
       const alerts = await getAlerts(user, advList) || [];
 
       alerts.forEach((alert) => {
@@ -165,6 +168,7 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
             `Loss risk: ${euro.format(alert.SL)}`,
             '',
             `Recommended: ${alert.adviceType}`,
+            `Interval: ${ITEXT[alert.interval]}`,
             `Relevance: ${nbr.format(alert.rel)}`,
             `Short sum: ${nbr.format(alert.short)}`,
             `Long sum: ${nbr.format(alert.long)}`,
@@ -175,15 +179,14 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
         );
       });
 
-      const ITEXT = { SHORT: '1 minute - 4 hours', LONG: '1 day - 4 month' };
       const a = advList[0];
 
       sendPush(
         user.id,
         `CandleVault advice for ${a.s}`,
         [
-          `Interval: ${a.interval} (${ITEXT[a.interval]})`,
           `Recommended: ${a.type}`,
+          `Interval: ${ITEXT[a.interval]}`,
           `Relevance: ${nbr.format(a.rel)}`,
           '',
           `Short sum: ${nbr.format(a.short)}`,
