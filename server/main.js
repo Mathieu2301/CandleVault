@@ -224,7 +224,7 @@ stocksAPI.on('price', (data) => {
       }
 
       if (trade.state === 'WAITFORCLOSE') {
-        console.log('Close trade', trade.id, gain);
+        console.log('Close trade', trade.user, trade.market, gain);
         db.collection('candlevault_trades').doc(trade.id).update({
           state: 'CLOSED',
           closeVal: data.price,
@@ -434,4 +434,7 @@ ws.on('connect', (socket) => {
   });
 });
 
-require('./backgroundHelper');
+// require('./backgroundHelper');
+const tradingBot = require('./tradingBot');
+
+if (process.env.botUserID) tradingBot(process.env.botUserID);
