@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import action from './trades.vue';
+import action from './marketTrades.vue';
 import TradingView from './components/TradingView.vue';
 
 /** @type {import('firebase').default.auth.Auth} */
@@ -56,6 +56,7 @@ export default {
 
   beforeCreate() {
     const market = (this.$route.params.market).toUpperCase();
+    if (market === 'TRADES') return;
     if (market !== this.$route.params.market) this.$router.push(`/${market}/${this.$route.params.page}`);
 
     if (!['Trades', 'Chart'].includes(this.$route.params.page)) {

@@ -63,8 +63,9 @@ const router = createRouter({
       name: 'CandleVault',
       component: () => import('./pages/main.vue'),
       children: [
-        { path: ':market', component: () => import('./pages/market.vue') },
-        { path: ':market/:page', component: () => import('./pages/market.vue') },
+        { path: 'trades', component: () => import('./pages/trades.vue') },
+        { path: ':market', component: () => import('./pages/marketChart.vue') },
+        { path: ':market/:page', component: () => import('./pages/marketChart.vue') },
       ],
     },
     {
