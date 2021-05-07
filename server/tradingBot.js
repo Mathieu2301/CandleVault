@@ -40,25 +40,15 @@ module.exports = async (userID) => {
       }
     });
 
-    const existingTrades = trades.filter((t) => t.market === symbol && t.state === 'OPEN');
-
-    if (existingTrades && existingTrades.length > 0) {
-      existingTrades.forEach((trade) => {
-        db.collection('candlevault_trades').doc(trade.id).update({
-          value: global.firebase.firestore.FieldValue.increment(100),
-        });
-      });
-    } else {
-      db.collection('candlevault_trades').add({
-        state: 'WAITFOROPEN',
-        market: symbol,
-        user: userID,
-        SL: 100,
-        TP: 100,
-        value: 100,
-        lever: Math.round(sum),
-      });
-    }
+    db.collection('candlevault_trades').add({
+      state: 'WAITFOROPEN',
+      market: symbol,
+      user: userID,
+      SL: 50,
+      TP: 50,
+      value: 200,
+      lever: Math.round(sum),
+    });
   }
 
   async function scanMarkets() {
