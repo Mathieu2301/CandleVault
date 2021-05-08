@@ -34,7 +34,7 @@ module.exports = async (userID) => {
 
   async function action(symbol, sum, abs) {
     trades.filter((t) => t.market === symbol).forEach((trade) => {
-      if (trade.lever * sum < 0 || abs < 3) {
+      if (trade.lever * sum < 0 || abs < 4) {
         console.log('Bot: Closing trade on', symbol);
         db.collection('candlevault_trades').doc(trade.id).update({ state: 'WAITFORCLOSE' });
       }
@@ -81,6 +81,13 @@ module.exports = async (userID) => {
       firstFetch = false;
     }
   });
+
+  db.collection('candlevault_trades')
+    .where('user', '==', userID)
+    .where('state', '==', 'OPEN')
+    .onSnapshot((snap) => {
+      snap.docs.forEach((d) => ({ id: d.id, ...d.data() }));
+    });
 
   db.collection('candlevault_trades')
     .where('user', '==', userID)
