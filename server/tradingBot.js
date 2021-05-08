@@ -32,23 +32,26 @@ module.exports = async (userID) => {
   let markets = [];
   let trades = [];
 
-  async function action(symbol, sum) {
+  async function action(symbol, sum, abs) {
     trades.filter((t) => t.market === symbol).forEach((trade) => {
-      if (trade.lever * sum < 0) {
+      if (trade.lever * sum < 0 || abs < 3) {
         console.log('Bot: Closing trade on', symbol);
         db.collection('candlevault_trades').doc(trade.id).update({ state: 'WAITFORCLOSE' });
       }
     });
 
-    db.collection('candlevault_trades').add({
-      state: 'WAITFOROPEN',
-      market: symbol,
-      user: userID,
-      SL: 50,
-      TP: 50,
-      value: 200,
-      lever: Math.round(sum),
-    });
+    if (abs > 5) {
+      console.log(symbol, '=>', (sum > 0 ? 'BUY' : 'SELL'), sum);
+      db.collection('candlevault_trades').add({
+        state: 'WAITFOROPEN',
+        market: symbol,
+        user: userID,
+        SL: 30,
+        TP: 50,
+        value: 100,
+        lever: Math.round(sum * 5),
+      });
+    }
   }
 
   async function scanMarkets() {
@@ -62,10 +65,7 @@ module.exports = async (userID) => {
           if (i < 5) sum += a.All;
         });
 
-        if (Math.abs(sum) >= 5) {
-          console.log((sum > 0 ? 'BUY' : 'SELL'), symbol, sum);
-          action(symbol, sum);
-        }
+        action(symbol, sum, Math.abs(sum));
       } catch (error) {
         // Wrong exchange
       }
