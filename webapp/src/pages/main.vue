@@ -567,7 +567,7 @@ select.filters {
 }
 
 .searchResults iframe {
-  height: 55px;
+  height: 53px;
   width: 100%;
   pointer-events: none;
 }

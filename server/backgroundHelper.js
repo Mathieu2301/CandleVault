@@ -136,7 +136,7 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
 
     for (const user of users) {
       let { markets } = user;
-      if (!markets.length || markets.length < 2) markets = [...markets, ...recommandedMarkets];
+      if (!markets.length) markets = [...markets, ...recommandedMarkets];
 
       const advList = (await Promise.all(markets.map((m) => getAdvice(m))))
         .filter((a) => a && a.rel >= 12).sort((a, b) => b.rel - a.rel);

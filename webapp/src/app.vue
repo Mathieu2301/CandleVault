@@ -344,9 +344,7 @@ body.noScroll .statusBar {
 .sideMenu {
   height: 100%;
   width: calc(100vw + 50px);
-  display: grid;
   max-width: 400px;
-  grid-template-rows: min-content auto;
   background-color: var(--color3);
   padding-left: 100px;
   transition-duration: 500ms;
