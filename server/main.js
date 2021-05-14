@@ -434,7 +434,4 @@ ws.on('connect', (socket) => {
   });
 });
 
-// require('./backgroundHelper');
-const tradingBot = require('./tradingBot');
-
-if (process.env.botUserID) tradingBot(process.env.botUserID);
+require('./backgroundHelper');
