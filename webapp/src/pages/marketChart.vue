@@ -55,7 +55,7 @@ export default {
   },
 
   beforeCreate() {
-    const market = (this.$route.params.market).toUpperCase();
+    const market = (this.$route.params.market.split(':').pop()).toUpperCase();
     if (market === 'TRADES') return;
     if (market !== this.$route.params.market) this.$router.push(`/${market}/${this.$route.params.page}`);
 

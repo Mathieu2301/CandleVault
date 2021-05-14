@@ -30,7 +30,7 @@
           >{{ formatNumber(v) }}</div>
         </div>
       </div>
-      <div v-else>Loading...</div>
+      <div v-else>Not available</div>
     </div>
 
     <div class="separator"/>

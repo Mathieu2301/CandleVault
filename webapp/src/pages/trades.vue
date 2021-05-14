@@ -14,27 +14,46 @@
         </div>
 
         <div class="group">
+          <div>Score</div>
+          <div :class="{
+            green: stats.total > 0,
+            red: stats.total < 0,
+          }">{{ stats.total >= 0 ? '+' : '-' }}{{ formatNumber(
+            (stats.total / (stats.gain - stats.loss)) * 100
+          ) }} %</div>
+        </div>
+
+        <div class="group">
           <div>Total</div>
           <div :class="{
-            green: stats.gain > 0,
-            red: stats.gain < 0,
-          }">{{ stats.gain >= 0 ? '+' : '-' }}{{ toEuro(stats.total) }}</div>
+            green: stats.total > 0,
+            red: stats.total < 0,
+          }">{{ stats.total >= 0 ? '+' : '-' }}{{ toEuro(stats.total) }}</div>
         </div>
 
         <div class="group">
           <div>Sell trades</div>
-          <div>{{ trades.filter((t) => !(t.lever > 0)).length }}</div>
+          <div>{{ stats.sellTrades }}</div>
         </div>
 
         <div class="group">
           <div>Buy trades</div>
-          <div>{{ trades.filter((t) => t.lever > 0).length }}</div>
+          <div>{{ stats.buyTrades }}</div>
+        </div>
+
+        <div class="group">
+          <div>Open trades</div>
+          <div>{{ stats.openTrades }}</div>
         </div>
 
         <div class="group">
           <div>Total trades</div>
           <div>{{ trades.length }}</div>
         </div>
+      </div>
+
+      <div class="button resetBtn" v-if="stats.openTrades !== trades.length" @click="resetTrades">
+        Reset all
       </div>
     </div>
 
@@ -46,6 +65,12 @@
 
 <script>
 import tradeList from './components/tradeList.vue';
+
+/** @type {import('firebase').default.firestore.Firestore} */
+const db = window.db;
+
+/** @type {import('izitoast').IziToast} */
+const toast = window.toast;
 
 export default {
   name: 'Trades',
@@ -63,6 +88,10 @@ export default {
         gain: 0,
         loss: 0,
         total: 0,
+
+        openTrades: 0,
+        buyTrades: 0,
+        sellTrades: 0,
       };
 
       this.trades.forEach((t) => {
@@ -71,7 +100,8 @@ export default {
             * (t.value / t.openVal)
             * t.lever;
           stats[gain < 0 ? 'loss' : 'gain'] += gain;
-        }
+        } else stats.openTrades += 1;
+        stats[`${t.lever > 0 ? 'buy' : 'sell'}Trades`] += 1;
       });
 
       stats.total = stats.gain + stats.loss;
@@ -93,6 +123,20 @@ export default {
         maximumFractionDigits,
       }).format(Math.abs(val || 0));
     },
+
+    resetTrades() {
+      toast.confirm('Are your sure you want to DELETE all your trades ?', async () => {
+        const coll = db.collection('candlevault_trades');
+        const batch = db.batch();
+
+        this.trades.filter((t) => t.state === 'CLOSED').slice(0, 500).forEach((t) => {
+          batch.delete(coll.doc(t.id));
+        });
+
+        await batch.commit();
+        toast.success({ title: 'Trades deleted !' });
+      });
+    },
   },
 };
 </script>
@@ -105,7 +149,6 @@ export default {
   margin: 0 auto;
   margin-bottom: 10px;
   display: grid;
-  grid-template-columns: auto auto;
 }
 
 .group {
@@ -125,4 +168,14 @@ export default {
 
 .red { color: var(--red) }
 .green { color: var(--green) }
+
+.resetBtn {
+  margin: 20px auto 5px;
+  max-width: 400px;
+}
+
+@media screen and (min-width: 500px) {
+  .stats { grid-template-columns: auto auto }
+}
+
 </style>

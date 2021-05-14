@@ -223,6 +223,11 @@ export default {
   }),
 
   created() {
+    if (this.$route.query.tvwidgetsymbol) {
+      const symbol = this.$route.query.tvwidgetsymbol.split(':').pop();
+      this.$router.push(`/${symbol}/Trades`);
+    }
+
     auth.onAuthStateChanged(async (fUser) => {
       if (fUser) {
         this.fUser = { ...fUser };

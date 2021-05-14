@@ -79,10 +79,6 @@
             }"
             v-if="trade.state === 'OPEN'"
             @click="closeTrade(trade)">Close ({{ calcGain(trade) }})</div>
-
-          <div class="closeBtn button"
-            v-if="trade.state === 'CLOSED'"
-            @click="deleteTrade(trade)">Delete</div>
         </div>
       </div>
     </div>
@@ -165,14 +161,6 @@ export default {
           state: 'WAITFORCLOSE',
         }).then(() => {
           toast.success({ title: 'Trade closed !' });
-        });
-      });
-    },
-
-    deleteTrade(trade) {
-      toast.confirm('Are your sure you want to DELETE this trade ?', () => {
-        db.collection('candlevault_trades').doc(trade.id).delete().then(() => {
-          toast.success({ title: 'Trade deleted !' });
         });
       });
     },

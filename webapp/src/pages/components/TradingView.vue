@@ -27,7 +27,7 @@ export default {
           showChart: true,
           width: '100%',
           height: '100%',
-          largeChartUrl: './',
+          largeChartUrl: 'candlevault.web.app',
           isTransparent: true,
           showSymbolLogo: true,
           plotLineColorGrowing: '#00b176',
@@ -57,16 +57,6 @@ export default {
           colorTheme: 'dark',
           trendLineColor: '#00b176',
           underLineColor: '#00b17630',
-        };
-      }
-
-      if (this.type === 'technical-analysis') {
-        return {
-          symbol: this.$route.params.market,
-          interval: '1h',
-          isTransparent: true,
-          showIntervalTabs: true,
-          colorTheme: 'dark',
         };
       }
 

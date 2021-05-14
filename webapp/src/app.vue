@@ -362,7 +362,7 @@ body.noScroll .statusBar {
 
 .sideMenu .noItems {
   font-size: 20px;
-  height: 90%;
+  margin: 100px 0;
   display: grid;
   align-items: center;
 }
