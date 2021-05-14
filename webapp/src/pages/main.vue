@@ -360,8 +360,8 @@ export default {
     listenTrades() {
       db.collection('candlevault_trades')
         .where('user', '==', auth.currentUser.uid)
-        .orderBy('openDate', 'desc')
         .onSnapshot((snap) => {
+          console.log(snap.docs);
           this.trades = snap.docs
             .map((doc) => ({ id: doc.id, openDate: { seconds: 10 ** 10 }, ...doc.data() }))
             .sort((a, b) => (b.openDate.seconds / (b.closeDate ? 2 : 1))
