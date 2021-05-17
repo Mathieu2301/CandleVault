@@ -71,13 +71,6 @@
         <div class="separator"/>
 
         <accountSettings :fUser="fUser"/>
-
-        <div class="separator"/>
-
-        <div class="block">
-          <div class="title">Delete account</div>
-          <div class="button bigRed" @click="deleteAccount">Delete account</div>
-        </div>
       </template>
 
       <template v-else>
@@ -184,7 +177,6 @@ const db = window.db;
 
 /** @type {import('izitoast').IziToast} */
 const toast = window.toast;
-const toastErr = (err) => toast.error({ title: err.message });
 
 export default {
   name: 'CandleVault',
@@ -420,19 +412,6 @@ export default {
 
       this.transactions = this.transactions.sort((a, b) => b.date.seconds - a.date.seconds);
       localStorage.setItem('transactions', JSON.stringify(this.transactions));
-    },
-
-    deleteAccount() {
-      toast.confirm('Are you sure you want to delete your account ? This action is irreversible.', () => {
-        if (this.trades.length === 0) {
-          auth.currentUser.delete().then(() => {
-            localStorage.removeItem('trades');
-            localStorage.removeItem('user');
-            localStorage.removeItem('transactions');
-            window.location.reload();
-          }).catch(toastErr);
-        } else toast.warning({ title: 'Please close all your trades before deleting your account' });
-      }, { icon: 'ico-warning' });
     },
   },
 
