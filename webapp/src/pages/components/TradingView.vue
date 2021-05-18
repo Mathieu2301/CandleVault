@@ -74,7 +74,7 @@ export default {
         + '?frameElementId=market_chart'
         + `&locale=${this.lang}`
         + `&symbol=${this.$route.params.market}`
-        + '&interval=3'
+        + '&interval=1H'
         + '&hidesidetoolbar=0'
         + '&saveimage=0'
         + '&toolbarbg=f1f3f6'

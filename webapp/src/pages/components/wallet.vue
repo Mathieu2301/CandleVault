@@ -80,7 +80,7 @@ export default {
   computed: {
     wallet() {
       const global = {
-        value: 0, gain: 0, evol: 0, nowValue: 0,
+        value: 0, gain: 0, evol: 0,
       };
       const markets = {};
 
@@ -92,7 +92,7 @@ export default {
         }
         const value = trade.value * trade.lever;
         markets[trade.market].nbr += 1;
-        markets[trade.market].value += value;
+        markets[trade.market].value += Math.abs(value);
         markets[trade.market].nowValue += (this.values[trade.market] / trade.openVal) * value;
         markets[trade.market].openValues += trade.openVal;
         markets[trade.market].gain += (this.values[trade.market] - trade.openVal)
@@ -104,10 +104,9 @@ export default {
         markets[symbol].evol = ((this.values[symbol] / (market.openValues / market.nbr)) - 1) * 100;
         global.value += (market.value || 0);
         global.gain += (market.gain || 0);
-        global.nowValue += (market.nowValue || 0);
       });
 
-      if (global.value) global.evol = ((global.nowValue / global.value) - 1) * 100;
+      if (global.value) global.evol = (global.gain / global.value) * 100;
 
       return { global, markets };
     },
