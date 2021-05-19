@@ -546,6 +546,7 @@ select.filters {
 
 .iframeContainer iframe {
   height: 90px;
+  width: 100%;
   pointer-events: none;
 }
 
