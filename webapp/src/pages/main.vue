@@ -417,11 +417,20 @@ export default {
 
   computed: {
     path() {
-      if (this.$route.path.toLowerCase() === '/trades') return [{ name: 'Trades', color: '#dddddd', path: [] }];
+      if (this.$route.path.toLowerCase() === '/trades') {
+        document.title = 'Trade list';
+        return [{ name: 'Trades', color: '#dddddd', path: [] }];
+      }
       const market = this.$route.params.market;
-      if (!market) return [{ name: 'Dashboard', color: '#dddddd', path: [] }];
+
+      if (!market) {
+        document.title = 'Dashboard';
+        return [{ name: 'Dashboard', color: '#dddddd', path: [] }];
+      }
+
       const page = this.$route.params.page;
 
+      document.title = `${market} ${page}`;
       return [
         { name: market, path: [market, page] },
         { name: page, path: [market, page] },
