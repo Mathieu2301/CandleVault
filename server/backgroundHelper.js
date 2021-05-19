@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 const stocksAPI = require('@mathieuc/tradingview/miscRequests');
+const coinrankingFetch = require('./coinranking');
 
 (async () => {
   /** @type {import('firebase-admin').firestore.Firestore} */
@@ -34,12 +35,13 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
   // }
 
   const searchCache = {};
-  async function searchMarket(symbol) {
-    if (searchCache[symbol]) return searchCache[symbol];
+  async function searchMarket(symbol, filter = '') {
+    const cacheID = `${filter}-${symbol}`;
+    if (searchCache[cacheID]) return searchCache[cacheID];
 
-    const searchRs = (await stocksAPI.search(symbol));
+    const searchRs = (await stocksAPI.search(symbol, filter));
     if (!searchRs || !searchRs[0] || !searchRs[0].id) return false;
-    [searchCache[symbol]] = searchRs;
+    [searchCache[cacheID]] = searchRs;
     return searchRs[0];
   }
 
@@ -199,6 +201,61 @@ const stocksAPI = require('@mathieuc/tradingview/miscRequests');
     }
   }
 
+  async function scanCryptos() {
+    // Only send notifications at 9, 12 and 20
+    if (![9, 12, 20].includes(new Date().getUTCHours() + 2)) return;
+
+    const cryptos = (await Promise.all(
+      (await coinrankingFetch(5)).filter((c) => c.change > 20).map(async (c) => {
+        const marketEUR = await searchMarket(`${c.symbol}EUR`, 'crypto');
+        if (marketEUR) return { ...c, market: marketEUR.symbol };
+
+        const marketUSD = await searchMarket(`${c.symbol}USD`, 'crypto');
+        if (marketUSD) return { ...c, market: marketUSD.symbol };
+
+        return false;
+      }),
+    )).filter((c) => c);
+
+    if (cryptos.length < 1) return;
+
+    const nbr = new Intl.NumberFormat('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    let notif = '';
+    let firstCrypto = null;
+    cryptos.forEach((crypto) => {
+      if (!firstCrypto) firstCrypto = crypto.market;
+      notif += `[${crypto.market}] ${crypto.name}: +${nbr.format(crypto.change)} %\n`;
+    });
+
+    const markets = ['ETHEUR', 'BTCEUR', 'ETHUSD', 'ETHEUR'];
+
+    (await db
+      .collection('candlevault_users')
+      .where('markets', 'array-contains-any', markets)
+      .get()
+    ).docs.forEach(async (u) => {
+      const fav = u.get('markets');
+      let n = 0;
+      fav.forEach((m) => { n += (markets.includes(m) ? 1 : 0); });
+
+      if (n < 2) return;
+
+      sendPush(
+        u.id,
+        'Crypto recommendations',
+        `${notif}\nFor ${u.get('displayName')}`,
+        firstCrypto,
+      );
+    });
+  }
+
   scanUsers();
   setInterval(scanUsers, 1000 * 60 * 60); // Every hour
+
+  scanCryptos();
+  setInterval(scanCryptos, 1000 * 60 * 60); // Every hour
 })();
