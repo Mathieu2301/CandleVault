@@ -52,8 +52,10 @@ window.db = firebase.firestore();
 
 window.auth.useDeviceLanguage();
 
+window.desktopApp = navigator.userAgent.toLowerCase().includes('candlevault-desktop');
+
 // eslint-disable-next-line
-if (window.location.protocol === 'https:') import('./registerServiceWorker');
+if (window.location.protocol === 'https:' && !window.desktopApp) import('./registerServiceWorker');
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
