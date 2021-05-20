@@ -363,7 +363,10 @@ export default {
         });
 
       const lastMarket = localStorage.getItem('lastMarket');
-      if (lastMarket && !this.$route.params.market) this.$router.push(`/${lastMarket}`);
+      if (lastMarket
+        && !this.$route.params.market
+        && !window.desktopApp
+      ) this.$router.push(`/${lastMarket}`);
 
       this.loading = false;
     },
