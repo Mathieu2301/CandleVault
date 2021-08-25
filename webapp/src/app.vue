@@ -39,7 +39,6 @@ body {
 
 body * {
   color: var(--font);
-  font-family: Trebuchet MS, roboto, ubuntu, sans-serif;
   font-family: Questrial, Arial, sans-serif;
   transition-duration: 100ms;
   box-sizing: border-box;

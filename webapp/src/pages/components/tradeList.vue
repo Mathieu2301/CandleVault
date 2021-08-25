@@ -70,7 +70,7 @@
 
           <div class="closeBtn redBg button"
             v-if="trade.state === 'WAITFOROPEN'"
-            @click="deleteTrade(trade)">Abort</div>
+            @click="abortTrade(trade)">Abort</div>
 
           <div class="closeBtn button"
             :class="{
@@ -161,6 +161,14 @@ export default {
           state: 'WAITFORCLOSE',
         }).then(() => {
           toast.success({ title: 'Trade closed !' });
+        });
+      });
+    },
+
+    abortTrade(trade) {
+      toast.confirm('Are your sure you want to DELETE this trade ?', () => {
+        db.collection('candlevault_trades').doc(trade.id).delete().then(() => {
+          toast.success({ title: 'Trade deleted !' });
         });
       });
     },
