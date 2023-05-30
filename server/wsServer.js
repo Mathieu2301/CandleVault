@@ -1,5 +1,6 @@
 const WebSocketServer = require('websocket').server;
 const http = require('http');
+const config = require('./src/config');
 
 let incomming = {};
 setInterval(() => {
@@ -11,11 +12,9 @@ const httpServer = http.createServer((rq, rs) => {
   if (rq.url === '/ping') rs.end('pong');
 });
 
-httpServer.listen(process.env.PORT || 4000);
+httpServer.listen(config.PORT);
 
-exports.server = new WebSocketServer({
-  httpServer,
-});
+exports.server = new WebSocketServer({ httpServer });
 
 exports.server.on('request', async (rq) => {
   const ip = rq.remoteAddresses.join('@');

@@ -12,5 +12,7 @@ module.exports = {
   },
   rules: {
     'no-console': 'off',
+    'no-continue': 'off',
+    'no-restricted-syntax': 'off',
   },
 };

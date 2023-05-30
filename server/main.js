@@ -1,17 +1,12 @@
-require('./envLoader');
-
 const firebase = require('firebase-admin');
 const https = require('https');
 const stocksAPI = require('@mathieuc/tradingview')();
-
-const credentials = process.env.credentials
-  ? JSON.parse(process.env.credentials)
-  : require('./firebaseCredentials.json');
+const config = require('./src/config');
 
 global.firebase = firebase;
 firebase.initializeApp({
-  credential: firebase.credential.cert(credentials),
-  databaseURL: process.env.DB_URL || 'https://iridium-blast.firebaseio.com',
+  credential: firebase.credential.cert(config.FIREBASE_CREDENTIALS),
+  databaseURL: config.FIREBASE_DB,
 });
 
 setTimeout(() => { // Auto restart every hour
@@ -19,14 +14,13 @@ setTimeout(() => { // Auto restart every hour
   process.exit(0);
 }, 3600000);
 
-const miakode = require('./miakode');
+const miakode = require('./src/miakode');
 const ws = require('./wsServer').server;
 
 const filters = ['stock', 'futures', 'forex', 'cfd', 'crypto', 'index', 'economic'];
 
-const CORR = process.env.CORR || 0;
 function getDate() {
-  return new Date(Date.now() + CORR);
+  return new Date(Date.now() + config.CORR);
 }
 
 const auth = firebase.auth();
@@ -120,7 +114,6 @@ db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnap
 
     if (from === 'DenisBank' && transacDoc.id.includes('DB_')) {
       const dealID = transacDoc.id.split('DB_')[1];
-
       const validDeal = await checkDeal(dealID);
 
       if (!validDeal) {
@@ -298,7 +291,7 @@ stocksAPI.on('logged', () => {
 
 let incrementer = 0;
 
-console.log(getDate(), 'Socket ready !');
+console.log(getDate(), `Socker ready on port ${config.PORT}`);
 ws.on('connect', (socket) => {
   incrementer += 1;
 

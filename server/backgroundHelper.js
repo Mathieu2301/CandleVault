@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 const stocksAPI = require('@mathieuc/tradingview/miscRequests');
-const coinrankingFetch = require('./coinranking');
+const coinrankingFetch = require('./src/coinranking');
 
 (async () => {
   /** @type {import('firebase-admin').firestore.Firestore} */
