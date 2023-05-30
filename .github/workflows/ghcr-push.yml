@@ -24,5 +24,6 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         push: true
+        context: "{{defaultContext}}:/server"
         tags: ghcr.io/mathieu2301/candlevault-agent:latest
         platforms: linux/amd64,linux/arm64
