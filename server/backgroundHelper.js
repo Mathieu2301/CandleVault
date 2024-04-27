@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-restricted-syntax */
 const stocksAPI = require('@mathieuc/tradingview/miscRequests');
+const twMiscRequests = require('./src/polyfills/twMiscRequests');
 const coinrankingFetch = require('./src/coinranking');
 
 (async () => {
@@ -39,20 +40,15 @@ const coinrankingFetch = require('./src/coinranking');
     const cacheID = `${filter}-${symbol}`;
     if (searchCache[cacheID]) return searchCache[cacheID];
 
-    const searchRs = (await stocksAPI.search(symbol, filter));
+    const searchRs = (await twMiscRequests.searchMarket(symbol, filter));
     if (!searchRs || !searchRs[0] || !searchRs[0].id) return false;
     [searchCache[cacheID]] = searchRs;
     return searchRs[0];
   }
 
   async function getTA(market) {
-    const exchange = (['forex', 'crypto'].includes(market.type)
-      ? market.type
-      : stocksAPI.getScreener(market.exchange)
-    );
-
     try {
-      return stocksAPI.getTA(exchange, market.id);
+      return stocksAPI.getTA('global', market.id);
     } catch (ex) {
       return false;
     }

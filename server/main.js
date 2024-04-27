@@ -1,6 +1,7 @@
 const firebase = require('firebase-admin');
 const https = require('https');
 const stocksAPI = require('@mathieuc/tradingview')();
+const twMiscRequests = require('./src/polyfills/twMiscRequests');
 const config = require('./src/config');
 
 global.firebase = firebase;
@@ -291,7 +292,7 @@ stocksAPI.on('logged', () => {
 
 let incrementer = 0;
 
-console.log(getDate(), `Socker ready on port ${config.PORT}`);
+console.log(getDate(), `Socket ready on port ${config.PORT}`);
 ws.on('connect', (socket) => {
   incrementer += 1;
 
@@ -368,7 +369,7 @@ ws.on('connect', (socket) => {
       const filter = filters[parsed[0]];
       const query = parsed.substring(1);
 
-      const results = (await stocksAPI.search(query, filter))
+      const results = (await twMiscRequests.searchMarket(query, filter))
         .map((m) => m.symbol)
         .filter((v, i, s) => s.indexOf(v) === i)
         .slice(0, 10);
@@ -379,18 +380,13 @@ ws.on('connect', (socket) => {
     if (msg.type === P_TYPES.CLIENT.TA) {
       const symbol = miakode.string.decode(msg.data);
 
-      const searchRs = (await stocksAPI.search(symbol));
+      const searchRs = (await twMiscRequests.searchMarket(symbol));
       if (!searchRs || !searchRs[0] || !searchRs[0].id) return;
       const market = searchRs[0];
 
-      const exchange = (['forex', 'crypto'].includes(market.type)
-        ? market.type
-        : stocksAPI.getScreener(market.exchange)
-      );
-
       let results = [];
       try {
-        const TA = await stocksAPI.getTA(exchange, market.id);
+        const TA = await stocksAPI.getTA('global', market.id);
         Object.values(TA).forEach((AN) => {
           results.push(AN.All, AN.MA, AN.Other);
         });

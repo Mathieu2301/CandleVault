@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@mathieuc/tradingview": "^1.9.0",
+    "axios": "^1.6.8",
     "firebase-admin": "^9.6.0",
     "websocket": "^1.0.34"
   },
