@@ -1,14 +1,16 @@
-FROM node:lts-hydrogen
+FROM node:latest
 
 LABEL org.opencontainers.image.source=https://github.com/mathieu2301/candlevault
 
 WORKDIR /app
 
-COPY package.json .
+# Copy package.json and yarn.lock to install dependencies
+COPY package.json yarn.lock ./
 
-RUN yarn
+# Install dependencies
+RUN yarn install --frozen-lockfile
 COPY . .
 
 EXPOSE 4000
 
-CMD ["node", "./main.js"]
+CMD ["yarn", "start"]
