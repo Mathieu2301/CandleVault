@@ -3,6 +3,10 @@ const https = require('https');
 const stocksAPI = require('@mathieuc/tradingview')();
 const twMiscRequests = require('./src/polyfills/twMiscRequests');
 const config = require('./src/config');
+const { installSafetyNet, runSafely } = require('./src/safety');
+
+// First thing: never let a stray rejection turn into a crash loop again.
+installSafetyNet();
 
 global.firebase = firebase;
 firebase.initializeApp({
@@ -86,23 +90,37 @@ function parsePacket(packet) {
 
 const genPayload = () => miakode.string.encode(Math.round(Math.random() * 10000).toString());
 
+/**
+ * Ask DenisBank whether a deal is valid.
+ *
+ * Rejects on transport failure so the caller can leave the transaction
+ * pending. Resolving falsy here would delete a legitimate transaction just
+ * because the remote bank had a blip.
+ *
+ * @param {string} dealID
+ * @returns {Promise<string>}
+ */
 function checkDeal(dealID) {
-  return new Promise((cb) => {
-    https.request('https://denisbank.usp-3.fr/api/?checkDeal', {
+  return new Promise((cb, err) => {
+    const req = https.request('https://denisbank.usp-3.fr/api/?checkDeal', {
       method: 'POST',
+      timeout: 10000,
+      headers: { 'content-type': 'application/json' },
     }, (res) => {
       let body = '';
       res.on('data', (c) => { body += c; });
-      res.on('close', () => {
-        console.log('BODY', body);
-        cb(body);
-      });
-    }).end(JSON.stringify({ id: dealID }));
+      res.on('error', err);
+      res.on('close', () => cb(body));
+    });
+
+    req.on('timeout', () => req.destroy(new Error('DenisBank request timed out')));
+    req.on('error', err);
+    req.end(JSON.stringify({ id: dealID }));
   });
 }
 
 db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnapshot((snap) => {
-  snap.forEach(async (transacDoc) => {
+  snap.forEach((transacDoc) => runSafely('transaction', async () => {
     const { from, to, value } = transacDoc.data();
 
     if (!from || !to || !value) {
@@ -150,7 +168,7 @@ db.collection('candlevault_transactions').where('state', '==', 'WAITING').onSnap
     }).format(Math.abs(value));
 
     sendPush(to, `Transaction received: +${formattedValue}`, (transacDoc.get('name') || ''));
-  });
+  }));
 });
 
 /** @typedef {string} MarketSymbol */
@@ -303,7 +321,7 @@ ws.on('connect', (socket) => {
 
   let pongPayload = null;
 
-  socket.on('message', async (packet) => {
+  socket.on('message', (packet) => runSafely('socket.message', async () => {
     const msg = parsePacket(packet);
     if (!msg.data) return;
     // If not authenticated and packet is not an authentication packet
@@ -404,7 +422,7 @@ ws.on('connect', (socket) => {
     }
 
     console.log('Unknown packet', msg);
-  });
+  }));
 
   let pingPayload = null;
   const pingInterval = setInterval(() => {

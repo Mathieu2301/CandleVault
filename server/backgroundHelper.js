@@ -3,6 +3,7 @@
 const stocksAPI = require('@mathieuc/tradingview/miscRequests');
 const twMiscRequests = require('./src/polyfills/twMiscRequests');
 const coinrankingFetch = require('./src/coinranking');
+const { scheduleSafely } = require('./src/safety');
 
 (async () => {
   /** @type {import('firebase-admin').firestore.Firestore} */
@@ -249,9 +250,12 @@ const coinrankingFetch = require('./src/coinranking');
     });
   }
 
-  scanUsers();
-  setInterval(scanUsers, 1000 * 60 * 60); // Every hour
+  const HOUR = 1000 * 60 * 60;
 
-  scanCryptos();
-  setInterval(scanCryptos, 1000 * 60 * 60); // Every hour
-})();
+  // Best-effort notification jobs: a failing third-party API must degrade the
+  // feature, never take the trading agent down with it.
+  scheduleSafely('scanUsers', scanUsers, HOUR);
+  scheduleSafely('scanCryptos', scanCryptos, HOUR);
+})().catch((e) => {
+  console.error(`Background helper failed to start: ${e.stack || e.message}`);
+});

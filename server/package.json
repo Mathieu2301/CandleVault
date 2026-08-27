@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "start": "node main",
-    "dev": "nodemon main"
+    "dev": "nodemon main",
+    "test": "node --test \"test/*.test.js\"",
+    "lint": "eslint ."
   },
   "keywords": [
     "CandleVault",
@@ -15,9 +17,9 @@
   "license": "ISC",
   "dependencies": {
     "@mathieuc/tradingview": "^1.9.0",
-    "axios": "^1.6.8",
-    "firebase-admin": "^9.6.0",
-    "websocket": "^1.0.34"
+    "axios": "^1.20.0",
+    "firebase-admin": "^12.7.0",
+    "websocket": "^1.0.35"
   },
   "devDependencies": {
     "eslint": "^7.23.0",
