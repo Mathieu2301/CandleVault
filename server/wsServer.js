@@ -9,7 +9,15 @@ setInterval(() => {
 }, 300000);
 
 const httpServer = http.createServer((rq, rs) => {
-  if (rq.url === '/ping') rs.end('pong');
+  if (rq.url === '/ping') {
+    rs.writeHead(200, { 'content-type': 'text/plain' });
+    rs.end('pong');
+    return;
+  }
+
+  // Anything else used to hang forever, leaking a socket per request.
+  rs.writeHead(404);
+  rs.end();
 });
 
 httpServer.listen(config.PORT);
